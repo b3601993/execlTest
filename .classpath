@@ -15,5 +15,6 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/poi-3.14-20160307.jar"/>
 	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/poi-ooxml-3.14-20160307.jar"/>
+	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/mongo-java-driver-2.11.3.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
