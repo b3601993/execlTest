@@ -8,40 +8,31 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 日期工具类.
  */
 public class DateUtil {
-	
-	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-	public static final SimpleDateFormat DATE_FORMAT1 = new SimpleDateFormat("yyyyMMdd");
-	public static final SimpleDateFormat DATE_FORMAT2 = new SimpleDateFormat("yyyy/MM/dd");
-	public static final SimpleDateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	public static final SimpleDateFormat DATETIME_FORMAT1 = new SimpleDateFormat("yyyyMMddHHmmss");
-	public static final SimpleDateFormat DATETIME_FORMAT2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-	public static final SimpleDateFormat UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-	private static Map<String, SimpleDateFormat> formats = null;
-	
-	static {
-		formats = new HashMap<String, SimpleDateFormat>();
-		formats.put("yyyy-MM-dd", DATE_FORMAT);
-		formats.put("yyyyMMdd", DATE_FORMAT1);
-		formats.put("yyyy/MM/dd", DATE_FORMAT2);
-		formats.put("yyyy-MM-dd HH:mm:ss", DATETIME_FORMAT);
-		formats.put("yyyyMMddHHmmss", DATETIME_FORMAT1);
-		formats.put("yyyy/MM/dd HH:mm:ss", DATETIME_FORMAT2);
-		formats.put("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", UTC_FORMAT);
-	}
+
+	private static final ThreadLocal<Map<String, SimpleDateFormat>> threadLocal = new ThreadLocal<Map<String,SimpleDateFormat>>();
 	
 	public static SimpleDateFormat getFormat(String pattern) {
+		Map<String, SimpleDateFormat> formats = threadLocal.get();
+		if (formats == null) {
+			formats = new HashMap<String, SimpleDateFormat>();
+		}
 		SimpleDateFormat sdf = formats.get(pattern);
 		if (sdf == null) {
 			sdf = new SimpleDateFormat(pattern);
 			formats.put(pattern, sdf);
+			threadLocal.set(formats);
 		}
+		
 		return sdf;
 	}
 	
@@ -60,6 +51,24 @@ public class DateUtil {
         calendar.set(Calendar.SECOND, 59);
         calendar.set(Calendar.MILLISECOND, 999);
         return calendar.getTime();
+    }
+    
+    /**
+     * 获得指定日期的最后一天
+     *
+     * @param date
+     * @return
+     */
+    public static Date endDayOfMonth(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        int value = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        cal.set(Calendar.DAY_OF_MONTH, value);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 000);
+        return cal.getTime();
     }
   
     public static Date getBeginOfDay(Date date) {
@@ -85,7 +94,87 @@ public class DateUtil {
         return calendar.getTime();
     }
 
+    public static Date getBeginOfYear() {
+    	return getBeginOfYear(null);
+    }
+    
+    public static Date getBeginOfYear(Date date) {
+    	Calendar calendar = Calendar.getInstance();
+    	if (date != null) {
+    		calendar.setTime(date);
+    	}
+    	calendar.set(Calendar.MONTH, Calendar.JANUARY);
+    	calendar.set(Calendar.DAY_OF_MONTH, 1);
+    	calendar.set(Calendar.HOUR_OF_DAY, 0);
+    	calendar.set(Calendar.MINUTE, 0);
+    	calendar.set(Calendar.SECOND, 0);
+    	calendar.set(Calendar.MILLISECOND, 000);
+    	return calendar.getTime();
+    }
+
+    public static Date getBeginOfYear(int year) {
+    	Calendar calendar = Calendar.getInstance();
+    	calendar.set(Calendar.YEAR, year);
+    	calendar.set(Calendar.MONTH, Calendar.JANUARY);
+    	calendar.set(Calendar.DAY_OF_MONTH, 1);
+    	calendar.set(Calendar.HOUR_OF_DAY, 0);
+    	calendar.set(Calendar.MINUTE, 0);
+    	calendar.set(Calendar.SECOND, 0);
+    	calendar.set(Calendar.MILLISECOND, 000);
+    	return calendar.getTime();
+    }
+
+    public static Date getEndOfYear() {
+    	return getEndOfYear(null);
+    }
+    
+    public static Date getEndOfYear(Date date) {
+    	Calendar calendar = Calendar.getInstance();
+    	if (date != null) {
+    		calendar.setTime(date);
+    	}
+    	calendar.set(Calendar.MONTH, Calendar.DECEMBER);
+    	calendar.set(Calendar.DAY_OF_MONTH, 31);
+    	calendar.set(Calendar.HOUR_OF_DAY, 23);
+    	calendar.set(Calendar.MINUTE, 59);
+    	calendar.set(Calendar.SECOND, 59);
+    	calendar.set(Calendar.MILLISECOND, 999);
+    	return calendar.getTime();
+    }
+
+    public static Date getEndOfYear(int year) {
+    	Calendar calendar = Calendar.getInstance();
+    	calendar.set(Calendar.YEAR, year);
+    	calendar.set(Calendar.MONTH, Calendar.DECEMBER);
+    	calendar.set(Calendar.DAY_OF_MONTH, 31);
+    	calendar.set(Calendar.HOUR_OF_DAY, 23);
+    	calendar.set(Calendar.MINUTE, 59);
+    	calendar.set(Calendar.SECOND, 59);
+    	calendar.set(Calendar.MILLISECOND, 999);
+    	return calendar.getTime();
+    }
+
     /**
+     * 
+     * 获取当前的日期
+     *
+     * @return
+     * 
+     * @author yaoqiang
+     * @date 2015年3月9日 下午3:56:19
+     */
+    public static Date getNowDate(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 000);
+        return calendar.getTime();
+    }
+    
+    
+    /*
+     *
      * n天后的结束时间
      *
      * @return
@@ -134,6 +223,23 @@ public class DateUtil {
         calendar.set(Calendar.MILLISECOND, 000);
         return calendar.getTime();
     }
+    
+    /**
+     * 得到指定日期的第一天
+     *
+     * @return
+     */
+    public static Date firstDayOfMonth(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.DAY_OF_MONTH, calendar
+                .getActualMinimum(Calendar.DAY_OF_MONTH));
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 000);
+        return calendar.getTime();
+    }
 
     /**
      * 获得指定日期的最后一天
@@ -148,6 +254,36 @@ public class DateUtil {
         cal.set(Calendar.DAY_OF_MONTH, value);
         return cal.getTime();
     }
+    
+    /**
+     * 根据年月获得月初日期
+     */
+    public static Date firstDayOfMonth(Integer year,Integer month){
+    	Calendar cal = Calendar.getInstance();
+    	cal.set(Calendar.YEAR, year);
+    	cal.set(Calendar.MONTH, month-1);
+    	cal.set(Calendar.DAY_OF_MONTH, cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+    	cal.set(Calendar.HOUR_OF_DAY, 0);
+    	cal.set(Calendar.MINUTE, 0);
+    	cal.set(Calendar.SECOND, 0);
+    	cal.set(Calendar.MILLISECOND, 000);
+    	return cal.getTime();
+    }
+    
+    /**
+     * 根据年月获得月末日期
+     */
+    public static Date lastDayOfMonth(Integer year,Integer month){
+    	Calendar cal = Calendar.getInstance();
+    	cal.set(Calendar.YEAR, year);
+    	cal.set(Calendar.MONTH, month-1);
+    	cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+    	cal.set(Calendar.HOUR_OF_DAY, 0);
+    	cal.set(Calendar.MINUTE, 0);
+    	cal.set(Calendar.SECOND, 0);
+    	cal.set(Calendar.MILLISECOND, 000);
+    	return cal.getTime();
+    }
 
     /**
      * 获得某一年某一季度的最后一天日期
@@ -159,13 +295,14 @@ public class DateUtil {
      * @author Albert
      * @date 2014年1月23日 上午9:30:00
      */
-    public static Date lastDayOfQuarter(Integer year, int quarter) {
+    public static Date lastDayOfQuarter(Integer year, Integer quarter) {
     	if (quarter < 1 || quarter > 4) {
     		return null;
     	}
     	Calendar cal = Calendar.getInstance();
     	if (year != null && year > 0) {
     		cal.set(Calendar.YEAR, year);
+    		cal.set(Calendar.DAY_OF_MONTH, 1);
     	}
     	if (quarter == 1) {
     		cal.set(Calendar.MONTH, 2);
@@ -177,9 +314,38 @@ public class DateUtil {
     		cal.set(Calendar.MONTH, 11);
     	} 
     	cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
-    	cal.set(Calendar.HOUR, 0);
+    	cal.set(Calendar.HOUR_OF_DAY, 0);
     	cal.set(Calendar.MINUTE, 0);
     	cal.set(Calendar.SECOND, 0);
+    	cal.set(Calendar.MILLISECOND, 000);
+    	return cal.getTime();
+    }
+    
+    /**
+     * 获得某一年某一季度的第一天日期
+     */
+    public static Date firstDayOfQuarter(Integer year,Integer quarter) {
+    	if (quarter < 1 || quarter > 4) {
+    		return null;
+    	}
+    	Calendar cal = Calendar.getInstance();
+    	if (year != null && year > 0) {
+    		cal.set(Calendar.YEAR, year);
+    	}
+    	if (quarter == 1) {
+    		cal.set(Calendar.MONTH, 0);
+    	} else if (quarter == 2) {
+    		cal.set(Calendar.MONTH, 3);
+    	} else if (quarter == 3) {
+    		cal.set(Calendar.MONTH, 6);
+    	} else {
+    		cal.set(Calendar.MONTH, 9);
+    	}
+    	cal.set(Calendar.DAY_OF_MONTH, 1);
+    	cal.set(Calendar.HOUR_OF_DAY, 0);
+    	cal.set(Calendar.MINUTE, 0);
+    	cal.set(Calendar.SECOND, 0);
+    	cal.set(Calendar.MILLISECOND, 000);
     	return cal.getTime();
     }
     
@@ -216,10 +382,10 @@ public class DateUtil {
 
     public static Long diffDay(Date date) {
         long dateRange = 0l;
-        String now = DATE_FORMAT.format(new Date());
+        String now = getFormat("yyyy-MM-dd").format(new Date());
         Date sysDate = null;
         try {
-            sysDate = DATE_FORMAT.parse(now);
+            sysDate = getFormat("yyyy-MM-dd").parse(now);
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -239,7 +405,7 @@ public class DateUtil {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal.add(Calendar.DAY_OF_YEAR, days);
-        return DATE_FORMAT.format(cal.getTime());
+        return getFormat("yyyy-MM-dd").format(cal.getTime());
     }
 
     /**
@@ -257,6 +423,7 @@ public class DateUtil {
         try {
             date = getFormat(formatPattern).parse(sDate);
         } catch (Exception e) {
+        	return null;
         }
         return date;
     }
@@ -275,6 +442,59 @@ public class DateUtil {
         return getFormat(formatPattern).format(date);
     }
 
+    /**
+     * 
+     * 日期转数字
+     *
+     * @param date
+     * @return
+     * 
+     * @author yaoqiang
+     * @date 2015年1月20日 下午5:08:54
+     */
+    public static Integer dateToInteger(Date date){
+    	String result = dateToString(date,"yyyyMMdd");
+    	if(result != null && StringUtils.isNotBlank(result)){
+    		return Integer.parseInt(result);
+    	}
+    	return null;
+    }
+    
+    /**
+     * 
+     * 日期转数字
+     *
+     * @param date
+     * @param dateFormat
+     * @return
+     * 
+     * @author lisl
+     * @date 2016年3月31日 下午2:44:57
+     */
+    public static Integer dateToInteger(Date date, String dateFormat){
+    	String result = dateToString(date, dateFormat);
+    	if(result != null && StringUtils.isNotBlank(result)){
+    		return Integer.parseInt(result);
+    	}
+    	return null;
+    }
+    
+    /**
+     * 
+     * yyyyMMdd格式数字转日期
+     *
+     * @param date
+     * @return
+     * 
+     * @author yaoqiang
+     * @date 2015年1月20日 下午5:27:37
+     */
+    public static Date integerToDate(Integer date){
+    	if(date == null){
+    		return null;
+    	}
+    	return stringToDate(date.toString(), "yyyyMMdd");
+    }
     /**
      * 根据给定时间段和间隔天数，返回指定时间字符串列表
      *
@@ -327,7 +547,7 @@ public class DateUtil {
     public static Date getBeforeDate(Date day, int intervalDays) {
         Calendar beforeDay = Calendar.getInstance();
         beforeDay.setTime(day);
-        beforeDay.add(Calendar.DATE, 1 - intervalDays);
+        beforeDay.add(Calendar.DATE, 0 - intervalDays);
         return beforeDay.getTime();
     }
 
@@ -346,10 +566,10 @@ public class DateUtil {
     }
     
     /**
-     * 获取指定日期之前n天的日期.
+     * 获取指定日期之前n月的日期.
      *
-     * @param day
-     * @param intervalDays
+     * @param date
+     * @param months
      * @return
      */
     public static Date getDateBeforeMonths(Date date, int months) {
@@ -357,7 +577,7 @@ public class DateUtil {
     	if (date != null) {
     		beforeDay.setTime(date);
     	}
-    	beforeDay.set(Calendar.MONTH, 1 - months);
+    	beforeDay.add(Calendar.MONTH, 0 - months);
     	return beforeDay.getTime();
     }
     
@@ -365,7 +585,7 @@ public class DateUtil {
      * @return Date    返回类型
      * @throws
      * @Title: getAfterDate
-     * @Description: 某一天后，指定的几天
+     * @Description: 某一天后，指定的几月
      * @author YangShanCHeng
      */
     public static Date getDateAfterMonths(Date date, int months) {
@@ -373,7 +593,7 @@ public class DateUtil {
     	if (date != null) {
     		afterDay.setTime(date);
     	}
-    	afterDay.set(Calendar.MONTH, months);
+    	afterDay.add(Calendar.MONTH, months);
     	return afterDay.getTime();
     }
 
@@ -561,6 +781,27 @@ public class DateUtil {
         return "一周前";
     }
 
+
+    public static Weeks getWeeks(Date searchDate) {
+        Calendar cd = Calendar.getInstance();
+        cd.setTime(searchDate);
+        int week = cd.get(Calendar.DAY_OF_WEEK);
+        if (week == 1)
+            return Weeks.SUNDAY;
+        else if (week == 2) {
+            return Weeks.MONDAY;
+        } else if (week == 3)
+            return Weeks.THURSDAY;
+        else if (week == 4)
+            return Weeks.WEDNESDAY;
+        else if (week == 5)
+            return Weeks.TUESDAY;
+        else if (week == 6)
+            return Weeks.FRIDAY;
+        else
+            return Weeks.SATURDAY;
+    }
+
     public static java.sql.Date strToSqldate(String dateStr, String dateFormat){
 		Date date = stringToDate(dateStr,dateFormat);
 		java.sql.Date sqlDate = new java.sql.Date(date.getTime());
@@ -590,62 +831,145 @@ public class DateUtil {
 	}
 	
 	public static Date parseUTC(String utc) {
-		UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+		SimpleDateFormat sdf = getFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
-			Date date = UTC_FORMAT.parse(utc);
+			Date date = sdf.parse(utc);
 			return date;
 		} catch (ParseException e) {
 		}
         return null;
 	}
-
-    /**
-     * 计算两个日期之间相差的天数
-     * @param startDate 较小的时间
-     * @param endDate  较大的时间
-     * @return 相差天数
-     * @throws ParseException
-     */
-    public static Integer daysBetween(Date startDate, Date endDate){
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(startDate);
-        long time1 = cal.getTimeInMillis();
-        cal.setTime(endDate);
-        long time2 = cal.getTimeInMillis();
-        long between_days=(time2-time1)/(1000*3600*24);
-        return Integer.parseInt(String.valueOf(between_days));
-    }
-    
-    
-    /**
-     * 
-     * 获取2个日期之间的的时间差
-     *
-     * @param startDate 开始日期
-     * @param endDate 结束日期
-     * @return 时间差：HH：mm:ss
-     * 
-     * @author weijs
-     * @throws ParseException 
-     * @date 2016年9月9日 上午11:09:21
-     */
-	public static String getTimeBetweenDate(Date startDate, Date endDate) throws ParseException {
-		String time = null;
-		if (startDate != null && endDate != null) {
-			long countTimes = (endDate.getTime() - startDate.getTime()) / 1000;// 距离开播还有多少秒
-			long hour = countTimes % (24 * 3600) / 3600;
-			long minute = countTimes % 3600 / 60;
-			long second = countTimes % 60;
-
-			String aaString = hour + ":" + minute + ":" + second;
-			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-			Date date_util = sdf.parse(aaString);
-
-			SimpleDateFormat sdformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 24小时制
-			String LgTime = sdformat.format(date_util);
-			time = LgTime.substring(11);
+	
+	/**
+	 * 返回两个日期之间的天数
+	 *
+	 * @param date1
+	 * @param date2
+	 * 
+	 * @author yaoqiang
+	 * @date 2015年1月19日 下午5:26:59
+	 */
+	public static Long getDaysMinusDate(Date date1, Date date2){
+		if(date1 == null || date2 == null){
+			return null;
 		}
-		return time;
+		return (date1.getTime() - date2.getTime()) / (24 * 60 * 60 * 1000);	
 	}
-    
+	
+	/**
+	 * 返回两个日期之间的天数
+	 *
+	 * @param date1
+	 * @param date2
+	 * 
+	 * @author yaoqiang
+	 * @date 2015年1月19日 下午5:26:59
+	 */
+	public static Long getDaysMinusDate(String date1, String date2, String format){
+		if(format == null){
+			format = "yyyy-MM-dd";
+		}
+		Date d1 = stringToDate(date1,format);
+		Date d2 = stringToDate(date2,format);
+		return getDaysMinusDate(d1,d2);
+	}
+	
+	/**
+	 * 
+	 * 格林时间格式字符串转时间
+	 *
+	 * @param strDate
+	 * @return
+	 * 
+	 * @author lisl
+	 * @date 2015年9月30日 下午1:51:01
+	 */
+	public static Date stringToDateGL(String strDate){
+		SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.UK);
+		Date date = null;
+		try {
+			date = sdf.parse(strDate);
+		} catch (ParseException e) {
+			return stringToDate(strDate, "yyyy-MM-dd HH:mm:ss");
+		}
+		return date;
+	}
+
+	/**
+	 * 
+	 * 方法描述 获取季报表头
+	 *
+	 * @param list
+	 * @return
+	 * 
+	 * @author yaomy
+	 * @date 2016年10月25日 下午2:08:22
+	 */
+	public static List<Object> getDateSeason(List<Date> list){
+		
+		List<Object> list_data = new ArrayList<Object>();
+		Calendar cal = Calendar.getInstance();
+		for(int i=0;i<list.size();i++){
+			if(list_data.size() == 5){
+				break;
+			}
+			Date date = list.get(i);
+			
+			cal.setTime(date);
+			int month = cal.get(Calendar.MONTH)+1;
+			int year = cal.get(Calendar.YEAR);
+			if(month == 12){
+				list_data.add(year+"年报");
+			}else if(month == 9){
+				list_data.add(year+"三季报");
+			}else if(month == 6){
+				list_data.add(year+"中报");
+			}else if(month == 3){
+				list_data.add(year+"一季报");
+			}
+		}
+		return list_data;
+	}
+	/**
+	 * 近n期的报表时间集合
+	 * @param maxDate
+	 * @param num 
+	 * @return
+	 * @author yutao
+	 * @date 2016年10月24日下午5:24:38
+	 */
+	public static List reportDate(Date maxDate, int num){
+		Map<String, Object> result = new HashMap<String, Object>();
+
+//		result.put("maxDate", maxDate);
+		
+		List list = new ArrayList();
+		list.add(maxDate);
+		if(num ==1){
+			return null;
+		}
+		Calendar cal = Calendar.getInstance();
+		if(maxDate != null){
+			cal.setTime(maxDate);
+		}
+		cal.add(Calendar.MONTH, 0 - num);
+		
+		int per = 3;
+		for(Integer i=1; i<num;i++){
+			cal.setTime(maxDate);
+			cal.add(Calendar.MONTH, 0 - per*i);
+			Date beforeDate = cal.getTime();//n月前
+			cal.setTime(beforeDate);
+			int value = cal.getActualMaximum(Calendar.DAY_OF_MONTH);//n月前的最后一天
+	        cal.set(Calendar.DAY_OF_MONTH, value);
+	        cal.set(Calendar.HOUR_OF_DAY, 0);
+	        cal.set(Calendar.MINUTE, 0);
+	        cal.set(Calendar.SECOND, 0);
+	        cal.set(Calendar.MILLISECOND, 000);
+			result.put("near_date"+i.toString(), cal.getTime());
+			list.add(cal.getTime());
+		}
+		return list;
+	}
 }
