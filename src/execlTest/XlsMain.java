@@ -29,9 +29,9 @@ public class XlsMain {
 		HSSFWorkbook hssfworkbook = new HSSFWorkbook(in);
 		XlsDto xlsDto = null;
 		List<XlsDto> list = new ArrayList<XlsDto>();
-		// Ñ­»·¹¤×÷±íSheet
+		// å¾ªçŽ¯å·¥ä½œè¡¨Sheet
 		for(int num=0;num < hssfworkbook.getNumberOfSheets(); num++){
-			// µÃµ½ ¹¤×÷±¡ µÄµÚ N¸ö±í  
+			// å¾—åˆ° å·¥ä½œè–„ çš„ç¬¬ Nä¸ªè¡¨  
 			HSSFSheet sheetAt = hssfworkbook.getSheetAt(num);
 			if(sheetAt == null){
 				continue;
@@ -59,13 +59,13 @@ public class XlsMain {
 	
 	/**
 	 * 
-	 * µÃµ½excel±íÖÐµÄÖµ
+	 * å¾—åˆ°excelè¡¨ä¸­çš„å€¼
 	 *
 	 * @param cell
 	 * @return
 	 * 
 	 * @author yutao
-	 * @date 2016Äê5ÔÂ16ÈÕ ÏÂÎç3:51:26
+	 * @date 2016å¹´5æœˆ16æ—¥ ä¸‹åˆ3:51:26
 	 */
 	private String getValue(HSSFCell cell){
 		if(cell.getCellType() == Cell.CELL_TYPE_BOOLEAN){

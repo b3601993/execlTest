@@ -1,4 +1,4 @@
-package utils;
+package utils.ggservice.common;
 
 /**
  * 礼拜枚举类

@@ -15,31 +15,31 @@ public class XLSReader {
 	
 	
 	public static List readExcelData(String url) throws IOException{
-		//´´½¨ÁËÒ»¸öÊäÈëÁ÷
+		//åˆ›å»ºäº†ä¸€ä¸ªè¾“å…¥æµ
 		FileInputStream fis = new FileInputStream(url);
 		List hospitaList = new ArrayList();
 		Workbook workbook = null;
-		//xlsx ÊÇ2007ÒÔÉÏ°æ±¾£¬xlxÊÇ2003°æ±¾
+		//xlsx æ˜¯2007ä»¥ä¸Šç‰ˆæœ¬ï¼Œxlxæ˜¯2003ç‰ˆæœ¬
  		if(url.toLowerCase().endsWith("xlsx")){
 			workbook = new XSSFWorkbook(fis);
 		}else if(url.toLowerCase().endsWith("xlx")){
 			workbook = new HSSFWorkbook(fis);
 		}
-		//µÃµ½sheetµÄÊıÁ¿
+		//å¾—åˆ°sheetçš„æ•°é‡
 		int numberOfSheets = workbook.getNumberOfSheets();
-		//È¥Ñ­»·numberOfSheets
+		//å»å¾ªç¯numberOfSheets
 		for(int sheetNum = 0; sheetNum < numberOfSheets; sheetNum++){
-			// µÃµ½ ¹¤×÷±¡ µÄµÚ N¸ö±í  
+			// å¾—åˆ° å·¥ä½œè–„ çš„ç¬¬ Nä¸ªè¡¨  
 			Sheet sheetAt = workbook.getSheetAt(sheetNum);
 			Row row;
 			String cell;
-			// ±éÀú ±íÖĞµÄ¼ÇÂ¼£¨»áÓĞ¶àÌõ¼ÇÂ¼£©
+			// éå† è¡¨ä¸­çš„è®°å½•ï¼ˆä¼šæœ‰å¤šæ¡è®°å½•ï¼‰
 			for(int i = sheetAt.getFirstRowNum();i<sheetAt.getPhysicalNumberOfRows();i++){
-				//Ñ­»·ĞĞÊı
+				//å¾ªç¯è¡Œæ•°
 				row = sheetAt.getRow(i);
-				//±éÀúÃ¿Ìõ¼ÇÂ¼µÄÖµ£¨ÔÚexcelÖĞ£¬Ã¿Ò»ĞĞµÄ¼ÇÂ¼¶¼ÓĞ¶à¸öÖµ£¬ËùÒÔÒ²ĞèÒª½øĞĞ±éÀú£©
+				//éå†æ¯æ¡è®°å½•çš„å€¼ï¼ˆåœ¨excelä¸­ï¼Œæ¯ä¸€è¡Œçš„è®°å½•éƒ½æœ‰å¤šä¸ªå€¼ï¼Œæ‰€ä»¥ä¹Ÿéœ€è¦è¿›è¡Œéå†ï¼‰
 				for(int j = row.getFirstCellNum(); j<row.getPhysicalNumberOfCells();j++){
-					//Ñ­»·ÁĞÊı
+					//å¾ªç¯åˆ—æ•°
 					cell = row.getCell(j).toString();
 					hospitaList.add(cell);
 				}

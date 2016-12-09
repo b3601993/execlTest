@@ -1,6 +1,5 @@
 package execlTest.jiandan;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,30 +14,30 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class XLSQWriter {
 
 	public static void main(String[] args) throws IOException {
-		//´´½¨¹¤×÷±¡
+		//åˆ›å»ºå·¥ä½œè–„
 		XSSFWorkbook workbook = new XSSFWorkbook();
-		//ÔÚ¹¤×÷±¡ÖĞ´´½¨Ò»¹¤×÷±í
-		XSSFSheet sheet = workbook.createSheet("±í1");
-		//workbook.setSheetName(0, "sheet1"); Õâ¾ä»°ÒªÏÈ´´½¨±í£¨sheet£©²ÅÄÜÓÃ
-		//ÔÚÖ¸¶¨µÄË÷Òı´¦´´½¨Ò»ĞĞ
+		//åœ¨å·¥ä½œè–„ä¸­åˆ›å»ºä¸€å·¥ä½œè¡¨
+		XSSFSheet sheet = workbook.createSheet("è¡¨1");
+		//workbook.setSheetName(0, "sheet1"); è¿™å¥è¯è¦å…ˆåˆ›å»ºè¡¨ï¼ˆsheetï¼‰æ‰èƒ½ç”¨
+		//åœ¨æŒ‡å®šçš„ç´¢å¼•å¤„åˆ›å»ºä¸€è¡Œ
 		XSSFRow row = sheet.createRow(2);
-		// ÔÚÖ¸¶¨µÄË÷Òı´¦´´½¨Ò»ÁĞ£¨µ¥Ôª¸ñ£©
+		// åœ¨æŒ‡å®šçš„ç´¢å¼•å¤„åˆ›å»ºä¸€åˆ—ï¼ˆå•å…ƒæ ¼ï¼‰
 		XSSFCell cell = row.createCell(1);
-		// ¶¨Òåµ¥Ôª¸ñÎª×Ö·û´®ÀàĞÍ 
+		// å®šä¹‰å•å…ƒæ ¼ä¸ºå­—ç¬¦ä¸²ç±»å‹ 
 		cell.setCellType(XSSFCell.CELL_TYPE_STRING);
-		// ÔÚµ¥Ôª¸ñÊäÈëÄÚÈİ 
-		XSSFRichTextString cellContent = new XSSFRichTextString("Ò½Ôº±àºÅ");
+		// åœ¨å•å…ƒæ ¼è¾“å…¥å†…å®¹ 
+		XSSFRichTextString cellContent = new XSSFRichTextString("åŒ»é™¢ç¼–å·");
 		cell.setCellValue(cellContent);
-		//ÒÀÈ»´´½¨µ¥Ôª¸ñ
+		//ä¾ç„¶åˆ›å»ºå•å…ƒæ ¼
 		XSSFCell city = row.createCell(2);
 		city.setCellType(Cell.CELL_TYPE_STRING);
-		XSSFRichTextString cityContent = new XSSFRichTextString("³ÇÊĞ");
+		XSSFRichTextString cityContent = new XSSFRichTextString("åŸå¸‚");
 		city.setCellValue(cityContent);
 		OutputStream fos = new FileOutputStream("C:/Users/yutao/Desktop/test3.xlsx");
 		workbook.write(fos);
 		fos.flush();
-		System.out.println("ÎÄ¼şÉú³É");
-		
+		System.out.println("æ–‡ä»¶ç”Ÿæˆ");
+		workbook.close();
 		
 	}
 

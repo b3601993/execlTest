@@ -2,43 +2,43 @@ package execlTest;
 
 /**
  * 
- * ÊµÌåÀà
+ * å®ä½“ç±»
  * 
  * @version 1.0
  * @since JDK1.7
  * @author yutao
- * @company ÉÏº£³¯ÑôÓÀĞøĞÅÏ¢¼¼ÊõÓĞÏŞ¹«Ë¾
+ * @company ä¸Šæµ·æœé˜³æ°¸ç»­ä¿¡æ¯æŠ€æœ¯æœ‰é™å…¬å¸
  * @copyright (c) 2016 SunTime Co'Ltd Inc. All rights reserved.
- * @date 2016Äê5ÔÂ16ÈÕ ÉÏÎç11:31:13
+ * @date 2016å¹´5æœˆ16æ—¥ ä¸Šåˆ11:31:13
  */
 public class XlsDto {
 
 	/**
-     * Ñ¡¿ÎºÅ
+     * é€‰è¯¾å·
      */
     private Integer xkh;
     /**
-     * Ñ§ºÅ
+     * å­¦å·
      */
     private String xh;
     /**
-     * ĞÕÃû
+     * å§“å
      */
     private String xm;
     /**
-     * Ñ§Ôº
+     * å­¦é™¢
      */
     private String yxsmc;
     /**
-     * ¿Î³ÌºÅ
+     * è¯¾ç¨‹å·
      */
     private Integer kch;
     /**
-     * ¿Î³ÌÃû
+     * è¯¾ç¨‹å
      */
     private String kcm;
     /**
-     * ³É¼¨
+     * æˆç»©
      */
     private float cj;
 	

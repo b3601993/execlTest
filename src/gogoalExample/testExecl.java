@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -32,6 +36,7 @@ import com.mongodb.ServerAddress;
 //import com.rabbitmq.client.AMQP.Basic;
 //import com.sun.rowset.internal.Row;
 
+import gogoalExample.common.ExcelPoiCommon;
 import utils.DateUtil;
 /**
  * 用来跑测试数据的
@@ -51,7 +56,7 @@ public class testExecl{
 		try {
 			//连接数据库 start
 			MongoCredential credential = MongoCredential.createMongoCRCredential("gg_openapi", "gg_openapi", "gg..openapi#!".toCharArray());
-			ServerAddress serverAddress = new ServerAddress("42.62.50.226", 35520);
+			ServerAddress serverAddress = new ServerAddress("106.75.51.20", 35520);
 			List<ServerAddress> addrs = new ArrayList<ServerAddress>();  
             addrs.add(serverAddress);
             List<MongoCredential> credentials = new ArrayList<MongoCredential>();
@@ -60,62 +65,156 @@ public class testExecl{
 			//连接数据库 end
 			DB db = mongoClient.getDB("gg_openapi");
 			
-			DBCollection versionMessage = db.getCollection("version_upgrade_log");
+			DBCollection useropRecord = db.getCollection("userop_record");
+//			DBCollection loginRecord = db.getCollection("login_record");
+			DBCollection accountrelation = db.getCollection("accountrelation");
+			File file = new File("C:\\Users\\yutao\\Desktop\\通讯录整理确认20161209.xls");
+			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(0, 1, file);
 			
-			BasicDBObject query = new BasicDBObject();
-			BasicDBList list = new BasicDBList();
+/*			BasicDBObject query = new BasicDBObject();
+			query.append("status", 1);
+			List<Integer> list = new ArrayList<Integer>();
+			list.add(1);
 			list.add(2);
-			list.add(4);
 			query.append("type", new BasicDBObject("$in", list));
+//			query.append("code", "S2_l09");//S3_06
+			query.append("account_name", new BasicDBObject("$in", accountNameSet));
+			query.append("createtime", new BasicDBObject("$gte", DateUtil.stringToDate("2016-01-01", "yyyy-MM-dd")));
 			
-			XSSFWorkbook workbook = new XSSFWorkbook(); //创建一个空白的工作薄
-			XSSFSheet sheet = workbook.createSheet("版本升级情况");
-			XSSFRow row = sheet.createRow(0);
-			XSSFCell cell = row.createCell(0);
-			cell.setCellValue("日期");
-			cell = row.createCell(1);
-			cell.setCellValue("版本");
-			cell = row.createCell(2);
-			cell.setCellValue("升级日志");
-			cell = row.createCell(3);
-			cell.setCellValue("当前版本");
-			
-			DBCursor cursor = versionMessage.find(query);
-			
-			int rowUserop=1;
+			DBCursor cursor = useropRecord.find(query);
+			Map<String, Integer> map = new HashMap<String, Integer>();
+			Set<String> dateAccountSet =new HashSet<String>();
 			while(cursor.hasNext()){
 				DBObject o = cursor.next();
-				Object intoDate = o.get("into_date");
-				if(intoDate != null){
-					String date = DateUtil.dateToString((Date)intoDate, "yyyy-MM-dd");
-					String content = o.get("content")==null ? "" : o.get("content").toString();
-					row = sheet.createRow(rowUserop);
-					cell = row.createCell(0);
-					cell.setCellValue(date);
-					cell = row.createCell(1);
-					String type = o.get("type").toString();
-					if("2".equals(type)){
-						cell.setCellValue("gogoal2.0");
-					}else if("4".equals(type)){
-						cell.setCellValue("gogoal3.0");
+				Object date = o.get("createtime");
+				if(date != null){
+					String dateToString = DateUtil.dateToString((Date)date, "yyyy-MM-dd");
+					String accountName = o.get("account_name").toString();
+					String dateAccount = dateToString + ";" + accountName;//日期和accountName
+					
+					if(!dateAccountSet.contains(dateAccount)){
+						Integer count = map.get(accountName);
+						if(count == null){
+							map.put(accountName, 1);
+						}else{
+							map.put(accountName, ++count);
+						}
+						dateAccountSet.add(dateAccount);
 					}
-					cell = row.createCell(2);
-					cell.setCellValue(content);
-					cell = row.createCell(3);
-					cell.setCellValue(o.get("current_version").toString());
-					rowUserop++;
+					
 				}
-				
 			}
-			cursor.close();
+		    cursor.close();*/
+		    
+/*		    XSSFWorkbook workbook = new XSSFWorkbook();
+		    XSSFSheet sheet = workbook.createSheet("gogoal2.0登陆情况");
+		    XSSFRow row = sheet.createRow(0);
+		    XSSFCell cell = row.createCell(0);
+		    cell.setCellValue("gogoal2.0账号");
+		    cell = row.createCell(1);
+		    cell.setCellValue("登陆总次数");
+		    int rowUserop=1;
+		    for(Map.Entry<String, Integer> m : map.entrySet()){
+//		    	String key = m.getKey();
+//		    	String[] spilt = key.split(";");
+		    	String accountName = m.getKey();
+		    	Integer count = m.getValue();
+		    	row = sheet.createRow(rowUserop);
+		    	cell = row.createCell(0);
+		    	cell.setCellValue(accountName);
+		    	cell = row.createCell(1);
+		    	cell.setCellValue(count);
+		    	rowUserop++;
+		    }*/
+		    
+		    BasicDBObject qq = new BasicDBObject();
+		    qq.append("account_name", new BasicDBObject("$in", accountNameSet));
+		    
+		    XSSFWorkbook workbook = new XSSFWorkbook();
+		    XSSFSheet sheet2 = workbook.createSheet("gogoal2.0登陆情况");
+		    XSSFRow row2 = sheet2.createRow(0);
+		    XSSFCell cell2 = row2.createCell(0);
+		    cell2.setCellValue("gogoal账号");
+		    cell2 = row2.createCell(1);
+		    cell2.setCellValue("account_id");
+		    cell2 = row2.createCell(2);
+		    cell2.setCellValue("姓名");
+		    int rowUserop=1;
+		    DBCursor accountCursor = accountrelation.find(qq);
+		    while(accountCursor.hasNext()){
+		    	DBObject o = accountCursor.next();
+		    	String accountId = o.get("account_id").toString();
+		    	String accountName = o.get("account_name").toString();
+		    	String name = o.get("full_name")==null?"":o.get("full_name").toString();
+		    	row2 = sheet2.createRow(rowUserop);
+		    	cell2 = row2.createCell(0);
+		    	cell2.setCellValue(accountName);
+		    	cell2 = row2.createCell(1);
+		    	cell2.setCellValue(accountId);
+		    	cell2 = row2.createCell(2);
+		    	cell2.setCellValue(name);
+		    	rowUserop++;
+		    }
+		    accountCursor.close();
+		    
+/*		    //合并单元格
+			XSSFWorkbook workbook = new XSSFWorkbook(); //创建一个空白的工作薄
+			XSSFSheet sheet = workbook.createSheet("gogoal账号IP情况");
+			sheet.setColumnWidth(1, 1500);
+			XSSFCellStyle cellStyle = workbook.createCellStyle();
+			XSSFRow row = sheet.createRow(0);
+			XSSFCell cell = row.createCell(0);
+			cellStyle.setWrapText(true);//先设置为自动换行     
+			cell.setCellStyle(cellStyle);
+			cell.setCellValue("gogoal账号");
+			cell = row.createCell(1);
+			cell.setCellValue("ip");
+			int rowUserop=1;
+		    while(iterator.hasNext()){
+		    	DBObject o = iterator.next();
+		    	row = sheet.createRow(rowUserop);
+		    	cell = row.createCell(0);
+		    	String accountName = o.get("_id").toString();
+		    	cell.setCellValue(accountName);
+		    	cell = row.createCell(1);
+		    	List<String> ipList = (ArrayList) o.get("ip");
+		    	HashSet<String> ipSet = new HashSet<String>(ipList);
+		    	String ipStr = "";
+		    	for(String ip : ipSet){
+		    		ipStr += ip +"\r\n";
+		    	}
+		    	cellStyle.setWrapText(true);//先设置为自动换行     
+				cell.setCellStyle(cellStyle);
+		    	cell.setCellValue(new XSSFRichTextString(ipStr));
+		    	rowUserop++;
+		    }*/
 			
 			
-			
+/*			for(Map.Entry<String, String> m : mapInfo.entrySet()){
+				String value = m.getValue();
+				String[] split = value.split(";");
+				String orgName = split[0];//机构名称
+				String timeString = split[1];//注册时间
+				String key = m.getKey();//账号
+				Integer loginInt = map.get(key);//登录天次
+				
+				row = sheet.createRow(rowUserop);
+				cell = row.createCell(0);
+				cell.setCellValue(key);
+				cell = row.createCell(1);
+				cell.setCellValue(orgName);
+				cell = row.createCell(2);
+				cell.setCellValue(timeString);
+				cell = row.createCell(3);
+				cell.setCellValue(loginInt);
+				rowUserop++;
+			}*/
 			long time = System.currentTimeMillis();
-			String fileName = "版本升级情况"+time+".xlsx";
+			String fileName = "gogoal账号和account_id情况"+time+".xlsx";
 			
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
+			workbook.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -265,6 +364,7 @@ public class testExecl{
 			
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
+			workbook.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -413,6 +513,7 @@ public class testExecl{
 			
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
+			wb.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
