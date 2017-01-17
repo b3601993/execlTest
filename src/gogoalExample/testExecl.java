@@ -2,21 +2,19 @@ package gogoalExample;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -38,6 +36,7 @@ import com.mongodb.ServerAddress;
 
 import gogoalExample.common.ExcelPoiCommon;
 import utils.DateUtil;
+import utils.PayUsers;
 /**
  * 用来跑测试数据的
  *
@@ -67,150 +66,68 @@ public class testExecl{
 			
 			DBCollection useropRecord = db.getCollection("userop_record");
 //			DBCollection loginRecord = db.getCollection("login_record");
-			DBCollection accountrelation = db.getCollection("accountrelation");
-			File file = new File("C:\\Users\\yutao\\Desktop\\通讯录整理确认20161209.xls");
-			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(0, 1, file);
+//			DBCollection accountrelation = db.getCollection("accountrelation");
+//			DBCollection userListStatistics = db.getCollection("user_list_statistics");
+//			DBCollection collectionLog = db.getCollection("version_upgrade_log");
 			
-/*			BasicDBObject query = new BasicDBObject();
-			query.append("status", 1);
-			List<Integer> list = new ArrayList<Integer>();
-			list.add(1);
-			list.add(2);
-			query.append("type", new BasicDBObject("$in", list));
-//			query.append("code", "S2_l09");//S3_06
-			query.append("account_name", new BasicDBObject("$in", accountNameSet));
-			query.append("createtime", new BasicDBObject("$gte", DateUtil.stringToDate("2016-01-01", "yyyy-MM-dd")));
+
+//			File file = new File("C:\\Users\\yutao\\Desktop\\2016年度终端用户数据.xls");
+//			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(1, 0, file);
+			BasicDBObject useropQuery = new BasicDBObject();
+			BasicDBObject listQuery = new BasicDBObject();
+			listQuery.append("$in",
+					new Object[] { "E00018119", "E00001910", "E00001909", "E00001813", "E00001812", "E00001816",
+							"E023634", "E023633", "E023632", "E00001815", "E001052", "R006137", "R005237", "E00020601",
+							"F011670", "E00017078", "E042738", "F002207", "R006893", "E034821" });
+			useropQuery.append("account_name", listQuery);
+			useropQuery.append("type", new BasicDBObject("$ne", 3));
+			useropQuery.append("status", 1);
+			useropQuery.append("code", new BasicDBObject("$in", new Object[]{"D2_002", "D2_002_00"}));
 			
-			DBCursor cursor = useropRecord.find(query);
-			Map<String, Integer> map = new HashMap<String, Integer>();
-			Set<String> dateAccountSet =new HashSet<String>();
-			while(cursor.hasNext()){
-				DBObject o = cursor.next();
-				Object date = o.get("createtime");
-				if(date != null){
-					String dateToString = DateUtil.dateToString((Date)date, "yyyy-MM-dd");
-					String accountName = o.get("account_name").toString();
-					String dateAccount = dateToString + ";" + accountName;//日期和accountName
-					
-					if(!dateAccountSet.contains(dateAccount)){
-						Integer count = map.get(accountName);
-						if(count == null){
-							map.put(accountName, 1);
-						}else{
-							map.put(accountName, ++count);
-						}
-						dateAccountSet.add(dateAccount);
-					}
-					
+			BasicDBObject timeQuery = new BasicDBObject();
+			timeQuery.append("$gte", DateUtil.stringToDate("2016-06-01", "yyyy-MM-dd"));
+			timeQuery.append("$lte", DateUtil.stringToDate("2016-12-31", "yyyy-MM-dd"));
+			useropQuery.append("createtime", timeQuery);
+			
+			Map<String, Integer> accountMap = new HashMap<String, Integer>();
+			DBCursor useropCursor = useropRecord.find(useropQuery);
+			while(useropCursor.hasNext()){
+				DBObject o = useropCursor.next();
+				String accountName = o.get("account_name").toString();
+				Integer accountInt = accountMap.get(accountName);
+				if(accountInt == null){
+					accountMap.put(accountName, Integer.valueOf(1));
+				}else{
+					accountMap.put(accountName, ++accountInt);
 				}
 			}
-		    cursor.close();*/
-		    
-/*		    XSSFWorkbook workbook = new XSSFWorkbook();
-		    XSSFSheet sheet = workbook.createSheet("gogoal2.0登陆情况");
-		    XSSFRow row = sheet.createRow(0);
-		    XSSFCell cell = row.createCell(0);
-		    cell.setCellValue("gogoal2.0账号");
-		    cell = row.createCell(1);
-		    cell.setCellValue("登陆总次数");
-		    int rowUserop=1;
-		    for(Map.Entry<String, Integer> m : map.entrySet()){
-//		    	String key = m.getKey();
-//		    	String[] spilt = key.split(";");
-		    	String accountName = m.getKey();
-		    	Integer count = m.getValue();
-		    	row = sheet.createRow(rowUserop);
-		    	cell = row.createCell(0);
-		    	cell.setCellValue(accountName);
-		    	cell = row.createCell(1);
-		    	cell.setCellValue(count);
-		    	rowUserop++;
-		    }*/
-		    
-		    BasicDBObject qq = new BasicDBObject();
-		    qq.append("account_name", new BasicDBObject("$in", accountNameSet));
-		    
-		    XSSFWorkbook workbook = new XSSFWorkbook();
-		    XSSFSheet sheet2 = workbook.createSheet("gogoal2.0登陆情况");
-		    XSSFRow row2 = sheet2.createRow(0);
-		    XSSFCell cell2 = row2.createCell(0);
-		    cell2.setCellValue("gogoal账号");
-		    cell2 = row2.createCell(1);
-		    cell2.setCellValue("account_id");
-		    cell2 = row2.createCell(2);
-		    cell2.setCellValue("姓名");
-		    int rowUserop=1;
-		    DBCursor accountCursor = accountrelation.find(qq);
-		    while(accountCursor.hasNext()){
-		    	DBObject o = accountCursor.next();
-		    	String accountId = o.get("account_id").toString();
-		    	String accountName = o.get("account_name").toString();
-		    	String name = o.get("full_name")==null?"":o.get("full_name").toString();
-		    	row2 = sheet2.createRow(rowUserop);
-		    	cell2 = row2.createCell(0);
-		    	cell2.setCellValue(accountName);
-		    	cell2 = row2.createCell(1);
-		    	cell2.setCellValue(accountId);
-		    	cell2 = row2.createCell(2);
-		    	cell2.setCellValue(name);
-		    	rowUserop++;
-		    }
-		    accountCursor.close();
-		    
-/*		    //合并单元格
-			XSSFWorkbook workbook = new XSSFWorkbook(); //创建一个空白的工作薄
-			XSSFSheet sheet = workbook.createSheet("gogoal账号IP情况");
-			sheet.setColumnWidth(1, 1500);
-			XSSFCellStyle cellStyle = workbook.createCellStyle();
+			useropCursor.close();
+			
+			XSSFWorkbook workbook = new XSSFWorkbook();
+			XSSFSheet sheet = workbook.createSheet("2.0半年用户研报下载量");
 			XSSFRow row = sheet.createRow(0);
 			XSSFCell cell = row.createCell(0);
-			cellStyle.setWrapText(true);//先设置为自动换行     
-			cell.setCellStyle(cellStyle);
-			cell.setCellValue("gogoal账号");
+			cell.setCellValue("账号");
 			cell = row.createCell(1);
-			cell.setCellValue("ip");
+			cell.setCellValue("下载量");
+			
 			int rowUserop=1;
-		    while(iterator.hasNext()){
-		    	DBObject o = iterator.next();
-		    	row = sheet.createRow(rowUserop);
-		    	cell = row.createCell(0);
-		    	String accountName = o.get("_id").toString();
-		    	cell.setCellValue(accountName);
-		    	cell = row.createCell(1);
-		    	List<String> ipList = (ArrayList) o.get("ip");
-		    	HashSet<String> ipSet = new HashSet<String>(ipList);
-		    	String ipStr = "";
-		    	for(String ip : ipSet){
-		    		ipStr += ip +"\r\n";
-		    	}
-		    	cellStyle.setWrapText(true);//先设置为自动换行     
-				cell.setCellStyle(cellStyle);
-		    	cell.setCellValue(new XSSFRichTextString(ipStr));
-		    	rowUserop++;
-		    }*/
-			
-			
-/*			for(Map.Entry<String, String> m : mapInfo.entrySet()){
-				String value = m.getValue();
-				String[] split = value.split(";");
-				String orgName = split[0];//机构名称
-				String timeString = split[1];//注册时间
-				String key = m.getKey();//账号
-				Integer loginInt = map.get(key);//登录天次
+			for(Map.Entry<String, Integer> m : accountMap.entrySet()){
+
+				String key = m.getKey();//account_name
+				Integer value = m.getValue();//次数
 				
 				row = sheet.createRow(rowUserop);
 				cell = row.createCell(0);
 				cell.setCellValue(key);
+				
 				cell = row.createCell(1);
-				cell.setCellValue(orgName);
-				cell = row.createCell(2);
-				cell.setCellValue(timeString);
-				cell = row.createCell(3);
-				cell.setCellValue(loginInt);
+				cell.setCellValue(value);
+				
 				rowUserop++;
-			}*/
+			}
 			long time = System.currentTimeMillis();
-			String fileName = "gogoal账号和account_id情况"+time+".xlsx";
+			String fileName = "2.0半年用户研报下载量"+time+".xlsx";
 			
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
@@ -218,6 +135,581 @@ public class testExecl{
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * 获取活跃用户
+	 * 
+	 * @author yutao
+	 * @date 2017年1月12日上午10:28:45
+	 */
+	public static void getUserActivator(){
+
+		try {
+			//连接数据库 start
+			MongoCredential credential = MongoCredential.createMongoCRCredential("gg_openapi", "gg_openapi", "gg..openapi#!".toCharArray());
+			ServerAddress serverAddress = new ServerAddress("106.75.51.20", 35520);
+			List<ServerAddress> addrs = new ArrayList<ServerAddress>();  
+            addrs.add(serverAddress);
+            List<MongoCredential> credentials = new ArrayList<MongoCredential>();
+            credentials.add(credential);
+			MongoClient mongoClient = new MongoClient(addrs, credentials);
+			//连接数据库 end
+			DB db = mongoClient.getDB("gg_openapi");
+			
+			DBCollection useropRecord = db.getCollection("userop_record");
+//			DBCollection loginRecord = db.getCollection("login_record");
+//			DBCollection accountrelation = db.getCollection("accountrelation");
+//			DBCollection userListStatistics = db.getCollection("user_list_statistics");
+//			DBCollection collectionLog = db.getCollection("version_upgrade_log");
+			
+
+//			File file = new File("C:\\Users\\yutao\\Desktop\\2016年度终端用户数据.xls");
+//			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(1, 0, file);
+			Map<String, Set<String>> payUser = new HashMap<String, Set<String>>();
+			/*Date date01 = DateUtil.stringToDate("2016-01-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date01, "yyyy-MM"), PayUsers.getMonthPayUsers(date01));
+			Date date02 = DateUtil.stringToDate("2016-02-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date02, "yyyy-MM"), PayUsers.getMonthPayUsers(date02));
+			Date date03 = DateUtil.stringToDate("2016-03-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date03, "yyyy-MM"), PayUsers.getMonthPayUsers(date03));
+			Date date04 = DateUtil.stringToDate("2016-04-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date04, "yyyy-MM"), PayUsers.getMonthPayUsers(date04));
+			Date date05 = DateUtil.stringToDate("2016-05-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date05, "yyyy-MM"), PayUsers.getMonthPayUsers(date05));
+			Date date06 = DateUtil.stringToDate("2016-06-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date06, "yyyy-MM"), PayUsers.getMonthPayUsers(date06));*/
+			/*Date date07 = DateUtil.stringToDate("2016-07-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date07, "yyyy-MM"), PayUsers.getMonthPayUsers(date07));
+			Date date08 = DateUtil.stringToDate("2016-08-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date08, "yyyy-MM"), PayUsers.getMonthPayUsers(date08));
+			Date date09 = DateUtil.stringToDate("2016-09-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date09, "yyyy-MM"), PayUsers.getMonthPayUsers(date09));
+			Date date10 = DateUtil.stringToDate("2016-10-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date10, "yyyy-MM"), PayUsers.getMonthPayUsers(date10));
+			Date date11 = DateUtil.stringToDate("2016-11-01", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date11, "yyyy-MM"), PayUsers.getMonthPayUsers(date11));*/
+			Date date12 = DateUtil.stringToDate("2016-12-31", "yyyy-MM");
+			payUser.put(DateUtil.dateToString(date12, "yyyy-MM"), PayUsers.getMonthPayUsers(date12));
+//			Set<String> payUsers12 = PayUsers.getMonthPayUsers(date12);
+			Set<String> yearPayUsers = PayUsers.getYearPayUsers(DateUtil.stringToDate("2016-01-01", "yyyy-MM-dd"), date12);
+			
+			BasicDBObject useropQuery = new BasicDBObject();
+			BasicDBObject timeQuery = new BasicDBObject();
+			timeQuery.append("$gte", DateUtil.stringToDate("2016-10-01", "yyyy-MM-dd"));
+			timeQuery.append("$lte", DateUtil.stringToDate("2016-12-31", "yyyy-MM-dd"));
+			useropQuery.append("createtime", timeQuery);
+			useropQuery.append("status", 1);
+			useropQuery.append("org_id", new BasicDBObject("$ne", 4));
+			useropQuery.append("account_name", new BasicDBObject("$ne", null));
+			useropQuery.append("code", "S3_06");//S2_l09
+			useropQuery.append("type", 3);
+			Map<String, Integer> accountMap = new HashMap<String, Integer>();
+			
+			DBCursor useropCursor = useropRecord.find(useropQuery);
+//			Map<String, Set<String>> accountCount = new HashMap<String, Set<String>>();
+			Map<String, Integer> yearMap = new HashMap<String, Integer>();
+			Map<String, Integer> payMap = new HashMap<String, Integer>();
+			Set<String> quchong = new HashSet<String>();
+			Set<String> quchong2 = new HashSet<String>();
+			while(useropCursor.hasNext()){
+				DBObject o = useropCursor.next();
+				Object datetime = o.get("createtime");
+				if(datetime != null){
+//					String dateToString = DateUtil.dateToString((Date)datetime, "yyyy-MM");//日期
+//					String accountName = o.get("account_name").toString();//账号
+					String accountId = o.get("account_id").toString();
+					
+//					String dateAccount = dateToString + ";" + accountName + ";" + accountId;
+					String dateAccount = accountId;
+					
+					Integer accountInt = accountMap.get(dateAccount);
+					if(accountInt == null){
+						accountMap.put(dateAccount, Integer.valueOf(1));
+					}else{
+						if(accountInt >= 15){//就是我要统计的全年用户数
+							
+							if(!quchong.contains(accountId)){
+								if(yearPayUsers.contains(accountId)){
+									Integer payInt = payMap.get("year");
+									if(payInt == null){
+										payMap.put("year", Integer.valueOf(1));
+									}else{
+										payMap.put("year", ++payInt);
+									}
+								}
+								
+								Integer yearInt = yearMap.get("year");
+								if(yearInt == null){
+									yearMap.put("year", Integer.valueOf(1));
+								}else{
+									yearMap.put("year", ++yearInt);
+								}
+								quchong.add(accountId);
+							}
+							continue;
+						}
+						accountMap.put(dateAccount, ++accountInt);
+					}
+					quchong2.add(accountId);
+					/*Set<String> set = accountCount.get(dateToString);
+					if(set==null){
+						set = new HashSet<String>();
+						set.add(accountName);
+						accountCount.put(dateToString, set);
+					}else{
+						set.add(accountName);
+					}*/
+				}
+			}
+			useropCursor.close();
+//			Map<String, Integer> payMap = new HashMap<String, Integer>();
+/*			Map<String, Integer> resultMap = new HashMap<String, Integer>();
+			for(Map.Entry<String, Integer> m : accountMap.entrySet()){
+				Integer value = m.getValue();//每个账号该登录的次数
+				String key = m.getKey();
+				String[] split = key.split(";");
+				String date = split[0];
+//				String accountName = split[1];
+				String accountId = split[2];
+				if(value >= 4){
+					Integer dateInt = resultMap.get(date);
+					if(dateInt == null){
+						resultMap.put(date, Integer.valueOf(1));
+					}else{
+						resultMap.put(date, ++dateInt);
+					}
+					
+					if(payUser.get(date).contains(accountId)){
+						Integer payInt = payMap.get(date);
+						if(payInt == null){
+							payMap.put(date, Integer.valueOf(1));
+						}else{
+							payMap.put(date, ++payInt);
+						}
+					}
+				}
+			}*/
+			
+			XSSFWorkbook workbook = new XSSFWorkbook();
+			XSSFSheet sheet = workbook.createSheet("终端3.0每个月的活跃用户");
+			XSSFRow row = sheet.createRow(0);
+			XSSFCell cell = row.createCell(0);
+			cell.setCellValue("日期");
+			cell = row.createCell(1);
+			cell.setCellValue("活跃总数");
+			cell = row.createCell(2);
+			cell.setCellValue("登录总数");
+			cell = row.createCell(3);
+			cell.setCellValue("付费用户数");
+			
+			int rowUserop=1;
+			for(Map.Entry<String, Integer> m : yearMap.entrySet()){
+
+				String key = m.getKey();//"year"
+				Integer value = m.getValue();//次数
+				
+				row = sheet.createRow(rowUserop);
+				cell = row.createCell(0);
+				cell.setCellValue("2016年全年");
+				
+				cell = row.createCell(1);
+				cell.setCellValue(value);
+				
+				cell = row.createCell(2);
+				cell.setCellValue(quchong2.size());
+				
+				cell = row.createCell(3);
+				cell.setCellValue(payMap.get(key));
+				
+				rowUserop++;
+			}
+			long time = System.currentTimeMillis();
+			String fileName = "终端3.0每个月的活跃用户"+time+".xlsx";
+			
+			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
+			workbook.write(out);
+			workbook.close();
+		
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+	
+	}
+	
+	
+	
+	/**
+	 * 指定相应账号 各模块统计
+	 * @param useropRecord
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @author yutao
+	 * @date 2017年1月3日下午2:36:27
+	 */
+	public static void getModuleCount(DBCollection useropRecord) throws FileNotFoundException, IOException {
+		File file = new File("C:\\Users\\yutao\\Desktop\\2016年度终端用户数据.xls");
+		
+		Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(1, 0, file);
+		
+		BasicDBObject useropQuery = new BasicDBObject();
+		useropQuery.append("account_name", new BasicDBObject("$in", accountNameSet));
+		BasicDBObject timeQuery = new BasicDBObject();
+		timeQuery.append("$gte", DateUtil.stringToDate("2016-08-05", "yyyy-MM-dd"));
+		timeQuery.append("$lte", DateUtil.stringToDate("2016-12-31", "yyyy-MM-dd"));
+		useropQuery.append("createtime", timeQuery);
+		useropQuery.append("status", 1);
+		useropQuery.append("code", new BasicDBObject("$in", new Object[]{"S3_06", "G3_02","G3_03", "G3_04", "G3_05", "G3_06", "G3_07", "G3_08", "G3_09", "G3_10", "G3_11", "G3_13", "G3_16"}));
+		
+		Map<String, Integer> accountMap = new HashMap<String, Integer>();
+		
+		
+		DBCursor useropCursor = useropRecord.find(useropQuery);
+		List<String> accountList = new ArrayList<String>();
+		while(useropCursor.hasNext()){
+			DBObject o = useropCursor.next();
+			String accountName = o.get("account_name").toString();
+			String code = o.get("code").toString();
+			
+			ExcelPoiCommon.getAccountCount(accountMap, accountName+code);
+		}
+		useropCursor.close();
+		
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		XSSFSheet sheet = workbook.createSheet("终端3.0试用用户各模块点击次数");
+		XSSFRow row = sheet.createRow(0);
+		XSSFCell cell = row.createCell(0);
+		cell.setCellValue("用户账号");
+		cell = row.createCell(1);
+		cell.setCellValue("登录次数");
+		cell = row.createCell(2);
+		cell.setCellValue("寻宝");
+		cell = row.createCell(3);
+		cell.setCellValue("事件");
+		cell = row.createCell(4);
+		cell.setCellValue("主题");
+		cell = row.createCell(5);
+		cell.setCellValue("诊股");
+		cell = row.createCell(6);
+		cell.setCellValue("研报");
+		cell = row.createCell(7);
+		cell.setCellValue("自选");
+		cell = row.createCell(8);
+		cell.setCellValue("个股");
+		cell = row.createCell(9);
+		cell.setCellValue("行情");
+		cell = row.createCell(10);
+		cell.setCellValue("数据");
+		cell = row.createCell(11);
+		cell.setCellValue("直播");
+		cell = row.createCell(12);
+		cell.setCellValue("业绩");
+		cell = row.createCell(13);
+		cell.setCellValue("社交");
+		
+		int rowUserop=1;
+		for(String accountName : accountNameSet){
+			String nameS3 = accountName + "S3_06";//登录
+			String nameG2 = accountName + "G3_02";//寻宝
+			String nameG3 = accountName + "G3_03";//时间
+			String nameG4 = accountName + "G3_04";//主题
+			String nameG5 = accountName + "G3_05";//诊股
+			String nameG6 = accountName + "G3_06";//研报
+			String nameG7 = accountName + "G3_07";//自选
+			String nameG8 = accountName + "G3_08";//个股
+			String nameG9 = accountName + "G3_09";//行情
+			String nameG10 = accountName + "G3_10";//数据
+			String nameG11 = accountName + "G3_11";//直播
+			String nameG13 = accountName + "G3_13";//业绩
+			String nameG16 = accountName + "G3_16";//社交
+			accountList.add(nameS3);
+			accountList.add(nameG2);
+			accountList.add(nameG3);
+			accountList.add(nameG4);
+			accountList.add(nameG5);
+			accountList.add(nameG6);
+			accountList.add(nameG7);
+			accountList.add(nameG8);
+			accountList.add(nameG9);
+			accountList.add(nameG10);
+			accountList.add(nameG11);
+			accountList.add(nameG13);
+			accountList.add(nameG16);
+			row = sheet.createRow(rowUserop);
+			cell = row.createCell(0);
+			cell.setCellValue(accountName);
+//				cell = row.createCell(1);
+//				cell.setCellValue(accountMap.get(nameS3));
+			
+			for(int i=0; i<accountList.size(); i++){
+				cell = row.createCell(i+1);
+				if(accountList.get(i) == null){
+					cell.setCellValue(0);
+				}else{
+					cell.setCellValue(accountMap.get(accountList.get(i))==null?0:accountMap.get(accountList.get(i)));
+				}
+			}
+			rowUserop++;
+			accountList.clear();
+		}
+		long time = System.currentTimeMillis();
+		String fileName = "终端3.0付试用用户各模块点击次数"+time+".xlsx";
+		
+		FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
+		workbook.write(out);
+		workbook.close();
+	}
+
+	
+	/**
+	 * 
+	 * 
+	 * @author yutao
+	 * @date 2017年1月3日上午10:06:52
+	 */
+	public static void getlianghua() {
+		try {
+			//连接数据库 start
+			MongoCredential credential = MongoCredential.createMongoCRCredential("gg_openapi", "gg_openapi", "gg..openapi#!".toCharArray());
+			ServerAddress serverAddress = new ServerAddress("106.75.51.20", 35520);
+			List<ServerAddress> addrs = new ArrayList<ServerAddress>();  
+            addrs.add(serverAddress);
+            List<MongoCredential> credentials = new ArrayList<MongoCredential>();
+            credentials.add(credential);
+			MongoClient mongoClient = new MongoClient(addrs, credentials);
+			//连接数据库 end
+			DB db = mongoClient.getDB("gg_openapi");
+			
+			DBCollection useropRecord = db.getCollection("userop_record");
+//			DBCollection loginRecord = db.getCollection("login_record");
+//			DBCollection accountrelation = db.getCollection("accountrelation");
+//			DBCollection userListStatistics = db.getCollection("user_list_statistics");
+//			DBCollection collectionLog = db.getCollection("version_upgrade_log");
+			
+			//用户点击统计排名前20的
+//			XSSFWorkbook workbook = getClickNum(accountrelation, userListStatistics);
+//			//得到登录次数，天数，开始时间，结束时间
+//			File file = new File("C:\\Users\\yutao\\Desktop\\CMS产品类型：中国量化投资俱乐部名单2016-12-14.xls");
+//			XSSFWorkbook workbook = getLoginStartLastTime(useropRecord, file);
+			
+			BasicDBObject query = new BasicDBObject();
+			query.append("status", 1);
+			query.append("code", "S3_03");
+			query.append("type", 3);
+			DBCursor cursor = useropRecord.find(query);
+			Map<String, Integer> map = new HashMap<String, Integer>();
+			while(cursor.hasNext()){
+				DBObject o = cursor.next();
+				String dateToString = DateUtil.dateToString((Date)o.get("createtime"), "yyyy-MM-dd");
+				Integer dateInt = map.get(dateToString);
+				if(dateInt == null){
+					map.put(dateToString, Integer.valueOf(1));
+				}else{
+					map.put(dateToString, ++dateInt);
+				}
+			}
+			cursor.close();
+			
+			XSSFWorkbook workbook = new XSSFWorkbook();
+			XSSFSheet sheet = workbook.createSheet("终端3.0每天的下载量");
+			XSSFRow row = sheet.createRow(0);
+			XSSFCell cell = row.createCell(0);
+			cell.setCellValue("日期");
+			cell = row.createCell(1);
+			cell.setCellValue("次数");
+			int rowUserop=1;
+			for(Map.Entry<String, Integer> m : map.entrySet()){
+				Integer value = m.getValue();
+				String key = m.getKey();
+				
+				row = sheet.createRow(rowUserop);
+				cell = row.createCell(0);
+				cell.setCellValue(key);
+				cell = row.createCell(1);
+				cell.setCellValue(value);
+				rowUserop++;
+			}
+			
+			
+		    
+			long time = System.currentTimeMillis();
+			String fileName = "终端3.0每天的下载量"+time+".xlsx";
+			
+			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
+			workbook.write(out);
+			workbook.close();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 得到登录次数，天数，开始时间，结束时间
+	 * @param useropRecord
+	 * @param file
+	 * @return
+	 * @throws FileNotFoundException
+	 * @author yutao
+	 * @date 2016年12月16日上午10:54:20
+	 */
+	public static XSSFWorkbook getLoginStartLastTime(DBCollection useropRecord, File file)
+			throws FileNotFoundException {
+		Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(0, 2, file);
+		
+		BasicDBObject query = new BasicDBObject();
+		query.append("status", 1);
+		query.append("type", 3);//3new BasicDBObject("$in", new Object[]{0,1,2})
+		query.append("code", "S3_06");//S3_06S2_l09
+		query.append("createtime", new BasicDBObject("$gte", DateUtil.stringToDate("2016-01-01", "yyyy-MM-dd"))
+				.append("$lte", DateUtil.stringToDate("2016-12-31", "yyyy-MM-dd")));
+		query.append("account_name", new BasicDBObject("$in", accountNameSet));
+		DBCursor cursor = useropRecord.find(query).sort(new BasicDBObject("createtime", 1));
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		Map<String, String> firstMap = new HashMap<String, String>();
+		Map<String, String> lastMap = new HashMap<String, String>();
+		Map<String, Integer> dayMap = new HashMap<String, Integer>();
+		Set<String> daySet = new HashSet<String>();
+		while(cursor.hasNext()){
+			DBObject o = cursor.next();
+			String accountName = o.get("account_name").toString();
+			String dateToString = DateUtil.dateToString((Date)o.get("createtime"), "yyyy-MM-dd");
+			String dateAccountName = dateToString + ";" + accountName;
+			if(firstMap.get(accountName)==null){
+				firstMap.put(accountName, dateToString);
+			}
+			lastMap.put(accountName, dateToString);
+			//次数
+			Integer i = map.get(accountName);
+			if(i == null){
+				map.put(accountName, Integer.valueOf(1));
+			}else{
+				map.put(accountName, ++i);
+			}
+			//天次
+			if(!daySet.contains(dateAccountName)){
+				Integer dayInt = dayMap.get(accountName);
+				if(dayInt == null){
+					dayMap.put(accountName, Integer.valueOf(1));
+				}else{
+					dayMap.put(accountName, ++dayInt);
+				}
+				daySet.add(dateAccountName);
+			}
+			
+		}
+		cursor.close();
+		
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		XSSFSheet sheet = workbook.createSheet("gogoal账号登录情况");
+		XSSFRow row = sheet.createRow(0);
+		XSSFCell cell = row.createCell(0);
+		cell.setCellValue("gogoal账号");
+		cell = row.createCell(1);
+		cell.setCellValue("登录次数");
+		cell = row.createCell(2);
+		cell.setCellValue("登录天次");
+		cell = row.createCell(3);
+		cell.setCellValue("首次登陆时间");
+		cell = row.createCell(4);
+		cell.setCellValue("最后登陆时间");
+		int rowUserop=1;
+		
+		for(Map.Entry<String, Integer> m : map.entrySet()){
+			String key = m.getKey();
+			Integer value = m.getValue();
+			row = sheet.createRow(rowUserop);
+			cell = row.createCell(0);
+			cell.setCellValue(key);
+			cell = row.createCell(1);
+			cell.setCellValue(value);
+			cell = row.createCell(2);
+			cell.setCellValue(dayMap.get(key));
+			cell = row.createCell(3);
+			cell.setCellValue(firstMap.get(key));
+			cell = row.createCell(4);
+			cell.setCellValue(lastMap.get(key));
+			rowUserop++;
+		}
+		return workbook;
+	}
+	
+	/**
+	 * 用户点击前20的统计
+	 * @param accountrelation
+	 * @param userListStatistics
+	 * @return
+	 * @author yutao
+	 * @date 2016年12月15日下午1:16:01
+	 */
+	public static XSSFWorkbook getClickNum(DBCollection accountrelation, DBCollection userListStatistics) {
+		BasicDBObject match = new BasicDBObject();
+		match.append("account_id", new BasicDBObject("$ne", "0"));
+		List<String> list = new ArrayList<String>();
+		list.add("付费用户");
+		list.add("试用用户");
+		match.append("user_type", new BasicDBObject("$in", list));
+		
+		BasicDBObject group = new BasicDBObject();
+		group.append("_id", "$account_id");
+		group.append("user_type", new BasicDBObject("$addToSet", "$user_type"));
+		group.append("history_count",new BasicDBObject("$max", "$history_count"));
+		
+		BasicDBObject sort = new BasicDBObject();
+		sort.append("history_count", -1);
+		
+		BasicDBObject limit = new BasicDBObject();
+		limit.append("$limit", 20);
+		
+		AggregationOutput output = userListStatistics.aggregate(new BasicDBObject("$match", match), 
+																new BasicDBObject("$group", group),
+																new BasicDBObject("$sort", sort),
+																limit);
+		Iterator<DBObject> iterator = output.results().iterator();
+		Map<String, Object> map = new HashMap<String, Object>();
+		Set<Integer> accountSet = new HashSet<Integer>();
+		while(iterator.hasNext()){
+			DBObject o = iterator.next();
+			String accountId = o.get("_id").toString();
+			accountSet.add(Integer.valueOf(accountId));
+			map.put(accountId, o.get("history_count"));
+		}
+		BasicDBObject accountQuery = new BasicDBObject();
+		accountQuery.append("account_id", new BasicDBObject("$in", accountSet));
+		DBCursor cursor = accountrelation.find(accountQuery);
+//		Map<String, String>	 mm = new HashMap<String, String>();
+		
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		XSSFSheet sheet = workbook.createSheet("gogoal3.0登陆情况");
+		XSSFRow row = sheet.createRow(0);
+		XSSFCell cell = row.createCell(0);
+		cell.setCellValue("gogoal账号");
+		cell = row.createCell(1);
+		cell.setCellValue("点击次数");
+		cell = row.createCell(2);
+		cell.setCellValue("机构名称");
+		cell = row.createCell(3);
+		cell.setCellValue("使用人名称");
+		int rowUserop=1;
+		
+		while(cursor.hasNext()){
+			DBObject o = cursor.next();
+			
+			String accountName = o.get("account_name") == null ? "暂时没有账号" : o.get("account_name").toString();
+			String fullName = o.get("full_name") == null ? "暂时没有名称" : o.get("full_name").toString();
+			String orgName = o.get("org_name") == null ? "暂时没有机构名称" : o.get("org_name").toString();
+			row = sheet.createRow(rowUserop);
+			cell = row.createCell(0);
+			cell.setCellValue(accountName);
+			cell = row.createCell(1);
+			cell.setCellValue(map.get(o.get("account_id").toString()).toString());
+			cell = row.createCell(2);
+			cell.setCellValue(orgName);
+			cell = row.createCell(3);
+			cell.setCellValue(fullName);
+			rowUserop++;
+		}
+		cursor.close();
+		return workbook;
 	}
 	
 	/**
@@ -514,6 +1006,7 @@ public class testExecl{
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
 			wb.close();
+			workbook.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -618,6 +1111,7 @@ public class testExecl{
 //			String fileNa = java.net.URLEncoder.encode(fileName != null ? fileName : "数据导出.xls", "UTF-8");
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
+			workbook.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -777,6 +1271,7 @@ public class testExecl{
 //			String fileNa = java.net.URLEncoder.encode(fileName != null ? fileName : "数据导出.xls", "UTF-8");
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
+			workbook.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -869,6 +1364,7 @@ public class testExecl{
 //			String fileNa = java.net.URLEncoder.encode(fileName != null ? fileName : "数据导出.xls", "UTF-8");
 			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
 			workbook.write(out);
+			workbook.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}

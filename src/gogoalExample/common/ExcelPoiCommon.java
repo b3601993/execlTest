@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -19,6 +20,9 @@ public class ExcelPoiCommon {
 
 	/**
 	 * 获得文件中account_name的集合
+	 * 
+	 * @param sheeetInt excel表中哪个sheet
+	 * @param cellInt excel表中哪一列开始读
 	 * 
 	 * @author yutao
 	 * @return 
@@ -50,7 +54,7 @@ public class ExcelPoiCommon {
 			int firstRowNum = sheetAt.getFirstRowNum();
 			int lastRowNum = sheetAt.getLastRowNum();
 			// 拿到所有的账号
-			for (int i = firstRowNum + 1; i < lastRowNum; i++) {
+			for (int i = firstRowNum + 1; i <= lastRowNum; i++) {
 				Row row = sheetAt.getRow(i);
 				Cell cell = row.getCell(cellInt);
 				String cellValue = cell.getStringCellValue().trim();
@@ -61,5 +65,14 @@ public class ExcelPoiCommon {
 			e.printStackTrace();
 		}
 		return accountNameSet;
+	}
+	
+	public static void getAccountCount(Map<String, Integer> accountMap, String name){
+		Integer nameInt = accountMap.get(name);
+		if(nameInt == null){
+			accountMap.put(name, Integer.valueOf(1));
+		}else{
+			accountMap.put(name, ++nameInt);
+		}
 	}
 }
