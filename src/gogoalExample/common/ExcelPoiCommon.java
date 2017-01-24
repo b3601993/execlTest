@@ -21,8 +21,8 @@ public class ExcelPoiCommon {
 	/**
 	 * 获得文件中account_name的集合
 	 * 
-	 * @param sheeetInt excel表中哪个sheet
-	 * @param cellInt excel表中哪一列开始读
+	 * @param sheeetInt excel表中哪个sheet(从0开始)
+	 * @param cellInt excel表中哪一列开始读(从0开始)
 	 * 
 	 * @author yutao
 	 * @return 
@@ -44,6 +44,7 @@ public class ExcelPoiCommon {
 			if("xlsx".equals(name)){
 				workbookIn = new XSSFWorkbook(in);
 				sheetAt = workbookIn.getSheetAt(sheetInt);
+				System.out.println(sheetAt.getSheetName());
 			}else if("xls".equals(name)){
 				workbookIn = new HSSFWorkbook(in);
 				sheetAt = workbookIn.getSheetAt(sheetInt);
@@ -57,6 +58,9 @@ public class ExcelPoiCommon {
 			for (int i = firstRowNum + 1; i <= lastRowNum; i++) {
 				Row row = sheetAt.getRow(i);
 				Cell cell = row.getCell(cellInt);
+				if(cell == null){
+					continue;
+				}
 				String cellValue = cell.getStringCellValue().trim();
 				accountNameSet.add(cellValue);
 			}
