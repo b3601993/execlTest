@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -43,12 +44,13 @@ public class HttpRequest {
 			connection.connect();
 			// 获得所有响应头字段
 			Map<String, List<String>> map = connection.getHeaderFields();
-			for (Map.Entry<String, List<String>> m : map.entrySet()) {
+			//循环打印请求头的信息，一般不用
+			/*for (Map.Entry<String, List<String>> m : map.entrySet()) {
 				List<String> value = m.getValue();
 				String key = m.getKey();
 
-//				System.out.println(key + "----->" + value);
-			}
+				System.out.println(key + "----->" + value);
+			}*/
 
 			// 定义BufferedReader输入流来读取URL的响应
 			in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -98,7 +100,27 @@ public class HttpRequest {
 		return str;
 
 	}
-
+	
+	/**
+	 * 返回的map,包含：国家、省份、城市、区、运营商等
+	 * 
+	 * 例如： "region":省份，"country":中国， "city":深圳市，"area":华南， "county":宝安区, "isp":电信
+	 * @param ip
+	 * @return
+	 * @author yutao
+	 * @date 2017年1月25日下午5:12:14
+	 */
+	public static Map<String, String> getIPAddress(String ip){
+		
+		String s = HttpRequest.sendGet("http://ip.taobao.com/service/getIpInfo.php?ip=", ip);
+		
+		JSONObject jsonObject = JSON.parseObject(s);
+		@SuppressWarnings("unchecked")
+		Map<String, String> map = jsonObject.getObject("data", Map.class);
+		return map;
+	}
+	
+	
 	public static void main(String[] args) {
 		// 发送 GET 请求
 		try {
@@ -106,7 +128,10 @@ public class HttpRequest {
 			// s = java.net.URLDecoder.decode(s, "UTF-8");
 			// s = new String(s.getBytes("ISO-8859-1"), "UTF-8");
 			
-			System.out.println((char)65);
+			System.out.println(getIPAddress("116.24.101.170"));
+			
+			
+			System.out.println((char)20013);
 			
 			System.out.println(s);
 			System.out.println(unicodeToString(s));
