@@ -15,14 +15,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.RichTextString;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.bson.BasicBSONDecoder;
+import org.apache.xmlbeans.impl.piccolo.io.FileFormatException;
 
 import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBList;
@@ -39,7 +41,6 @@ import com.mongodb.ServerAddress;
 
 import gogoalExample.common.ExcelPoiCommon;
 import utils.DateUtil;
-import utils.IPSeeker;
 import utils.PayUsers;
 /**
  * 用来跑测试数据的
@@ -70,275 +71,44 @@ public class testExecl{
 			
 			DBCollection useropRecord = db.getCollection("userop_record");
 //			DBCollection loginRecord = db.getCollection("login_record");
-			DBCollection accountrelation = db.getCollection("accountrelation");
-			DBCollection payUser = db.getCollection("t_paySys_user_permi");
+//			DBCollection accountrelation = db.getCollection("accountrelation");
+//			DBCollection payUser = db.getCollection("t_paySys_user_permi");
 //			DBCollection userListStatistics = db.getCollection("user_list_statistics");
 //			DBCollection collectionLog = db.getCollection("version_upgrade_log");
+//			DBCollection userSum = db.getCollection("user_sum");
 			
-
-//			File file = new File("C:\\Users\\yutao\\Desktop\\2016年度终端用户数据.xls");
-//			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(1, 0, file);
-			//现获取老用户
+			
+			File file = new File("C:\\Users\\yutao\\Desktop\\需要统计的报表0508.xlsx");
+			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(0, 2, file);
+			
 			BasicDBObject match = new BasicDBObject();
-			match.put("status", 1);
-			match.put("type", 3);//new BasicDBObject("$ne", 3)
-			match.put("org_id", new BasicDBObject("$ne", 4));
-			match.put("code", "S3_06");//S2_l09
-			match.put("createtime", new BasicDBObject("$lte", DateUtil.getEndOfDay(DateUtil.stringToDate("2016-08-04", "yyyy-MM-dd"))));
-			BasicDBObject group = new BasicDBObject();
-			group.append("_id", null);
-			group.append("account_name", new BasicDBObject("$addToSet", "$account_name"));
 			
-			
-			AggregationOutput output = useropRecord.aggregate(new BasicDBObject("$match", match), new BasicDBObject("$group", group));
-			Iterator<DBObject> iterator = output.results().iterator();
-			List<String> list = null;
-			//拿到了老用户
-			while(iterator.hasNext()){
-				DBObject o= iterator.next();
-				list = (ArrayList<String>)o.get("account_name");
-			}
-			list.add(null);
-			BasicDBObject useropQuery = new BasicDBObject();
-			if(list != null){
-				useropQuery.append("account_name", new BasicDBObject("$nin", list));
-			}
-			useropQuery.append("status", 1);
-			useropQuery.append("code", "S3_06");//S2_l09
-			useropQuery.append("org_id", new BasicDBObject("$ne", 4));
-			useropQuery.append("type", 3);//new BasicDBObject("$ne", 3)
+			match.append("type", new BasicDBObject("$in", new Object[]{0,1,2}));
+			match.append("code", "S2_l09");
+			match.append("account_name", new BasicDBObject("$in", accountNameSet));
 			BasicDBObject timeQuery = new BasicDBObject();
-			timeQuery.append("$gte", DateUtil.stringToDate("2016-08-05", "yyyy-MM-dd"));
-			timeQuery.append("$lte", DateUtil.getEndOfDay(DateUtil.stringToDate("2016-12-31", "yyyy-MM-dd")));
-			useropQuery.append("createtime", timeQuery);
+			timeQuery.append("$lte", DateUtil.stringToDate("2016-12-31", "yyyy-MM-dd"));
+			timeQuery.append("$gte", DateUtil.stringToDate("2016-03-01", "yyyy-MM-dd"));
+			match.append("createtime", timeQuery);
 			
-			Map<String, Integer> loginMap = new HashMap<String, Integer>();
-			Map<String, Integer> loginDateMap = new HashMap<String, Integer>();
-			Map<String, Set<String>> salerMap = new HashMap<String, Set<String>>();
-			Map<String, Set<String>> ipMap = new HashMap<String,Set<String>>();
-			Map<String, String> userMap = new HashMap<String,String>();
+			BasicDBObject group = new BasicDBObject();
+			group.append("_id", "$account_name");
+			group.append("loginCount", new BasicDBObject("$sum", 1));
 			
-			Set<String> loginSet = new HashSet<String>();
-			DBCursor useropCursor = useropRecord.find(useropQuery);
-			Set<String> accountSet = new HashSet<String>();
-			Map<Integer, String> userM = new HashMap<Integer, String>(); 
-			while(useropCursor.hasNext()){
-				DBObject o = useropCursor.next();
-				String accountName = o.get("account_name").toString();
-				String dateToString = DateUtil.dateToString((Date)o.get("createtime"), "yyyy-MM-dd");
-				String dateAccountName = dateToString + ";" + accountName;
-				//统计的账号
-				accountSet.add(accountName);
-				userM.put(Integer.valueOf(o.get("account_id").toString()), accountName);
-				
-				//登录次数
-				Integer loginInt = loginMap.get(accountName);
-				if(loginInt == null){
-					loginMap.put(accountName, Integer.valueOf(1));
-				}else{
-					loginMap.put(accountName, ++loginInt);
-				}
-				
-				//登录天次
-				if(!loginSet.contains(dateAccountName)){
-					Integer loginDateInt = loginDateMap.get(accountName);
-					if(loginDateInt == null){
-						loginDateMap.put(accountName, Integer.valueOf(1));
-					}else{
-						loginDateMap.put(accountName, ++loginDateInt);
-					}
-					loginSet.add(dateAccountName);
-				}
-				
-				//对应销售
-				Set<String> set = salerMap.get(accountName);
-				Object saler = o.get("saler_name");
-				if(saler != null){
-					if(set == null){
-						set = new HashSet<String>();
-						set.add(saler.toString());
-						salerMap.put(accountName, set);
-					}else{
-						set.add(saler.toString());
-					}
-				}
-				
-				
-				//ip地址
-				Set<String> ipSet = ipMap.get(accountName);
-				String ip = o.get("ip")==null?"":o.get("ip").toString();
-				if(ipSet == null){
-					ipSet = new HashSet<String>();
-					ipSet.add(ip);
-					ipMap.put(accountName, ipSet);
-				}else{
-					ipSet.add(ip);
-				}
-				
-				//用户类型
-				userMap.put(accountName, o.get("user_type").toString());
+			AggregationOutput output = useropRecord.aggregate(new BasicDBObject("$match", match), 
+								   new BasicDBObject("$group", group));
+			Iterator<DBObject> iterator = output.results().iterator();
+			
+			Map<String, Object> countMap = new HashMap<String, Object>();
+			while(iterator.hasNext()){
+				DBObject o = iterator.next();
+				countMap.put(o.get("_id").toString(), o.get("loginCount"));
 			}
-			useropCursor.close();
-			loginSet.clear();
-			
-			BasicDBObject accountQuery = new BasicDBObject();
-			accountQuery.append("account_name", new BasicDBObject("$in", accountSet));
-			DBCursor accountCursor = accountrelation.find(accountQuery);
-			Map<String, String> mdoMap = new HashMap<String, String>();
-			while(accountCursor.hasNext()){
-				DBObject o = accountCursor.next();
-				//账号
-				String accountName = o.get("account_name").toString();
-				
-				//电话
-				String mobile = o.get("mobile") == null ? "暂无电话" : o.get("mobile").toString();
-				if(StringUtils.isBlank(mobile)){
-					mobile="暂无电话";
-				}
-				//注册时间
-				String dateToString = DateUtil.dateToString((Date)o.get("insert_date"), "yyyy-MM-dd");
-				//机构名称
-				String orgName = o.get("org_name") == null ? "普通用户" : o.get("org_name").toString();
-				if(StringUtils.isBlank(orgName)){
-					orgName="暂无机构名";
-				}
-				
-				mdoMap.put(accountName, mobile + ";" + dateToString + ";" + orgName);
-			}
-			accountCursor.close();
-			
-			
-			
-			BasicDBObject payQuery = new BasicDBObject();
-			payQuery.append("user_id", new BasicDBObject("$in", userM.keySet()));
-			DBCursor payCursor = payUser.find(payQuery);
-			Map<String, String> payUserMap = new HashMap<String, String>();
-			Map<String, String> tryUserMap = new HashMap<String, String>();
-			while(payCursor.hasNext()){
-				DBObject o = payCursor.next();
-				String isPay = o.get("isPay").toString();
-				Integer userId = Integer.valueOf(o.get("user_id").toString());
-				//开始时间
-				String startDate = DateUtil.dateToString((Date)o.get("open_date"), "yyyy-MM-dd");
-				//结束时间
-				String endDate = DateUtil.dateToString((Date)o.get("end_date"), "yyyy-MM-dd");
-				
-				String se = startDate + ";" + endDate;
-				String accountName = userM.get(userId);
-				if("1".equals(isPay)){//付费的
-					String str = payUserMap.get(accountName);
-					if(str==null || StringUtils.isBlank(str)){
-						payUserMap.put(accountName, se);
-					}else{
-						payUserMap.put(accountName, se + "and" + str);
-					}
-				}else{//试用
-					String str = tryUserMap.get(accountName);
-					if(str==null || StringUtils.isBlank(str)){
-						tryUserMap.put(accountName, se);
-					}else{
-						tryUserMap.put(accountName, se + "and" + str);
-					}
-				}
-			}
-			payCursor.close();
-			
-			XSSFWorkbook workbook = new XSSFWorkbook();
-			String workbookStr = "2016年gg3.0用户情况";
-			XSSFSheet sheet = workbook.createSheet(workbookStr);
-			XSSFRow row = sheet.createRow(0);
-			XSSFCell cell = row.createCell(0);
-			cell.setCellValue("账号");
-			cell = row.createCell(1);
-			cell.setCellValue("联系电话");
-			cell = row.createCell(2);
-			cell.setCellValue("注册时间");
-			cell = row.createCell(3);
-			cell.setCellValue("机构名称");
-			cell = row.createCell(4);
-			cell.setCellValue("用户类型");
-			cell = row.createCell(5);
-			cell.setCellValue("所属地区");
-			cell = row.createCell(6);
-			cell.setCellValue("付费权限时间范围");
-			cell = row.createCell(7);
-			cell.setCellValue("试用权限时间范围");
-			cell = row.createCell(8);
-			cell.setCellValue("总登录次数");
-			cell = row.createCell(9);
-			cell.setCellValue("总登录天次");
-			cell = row.createCell(10);
-			cell.setCellValue("对应销售");
-			
-			int rowUserop=1;
-			
-			
-			for(Map.Entry<Integer, String> m : userM.entrySet()){
-//				Integer accountId = m.getKey();//用户id
-				String accountName = m.getValue();//账号
-				
-				row = sheet.createRow(rowUserop);
-				cell = row.createCell(0);//账号
-				cell.setCellValue(accountName);
-				String valueStr = mdoMap.get(accountName);
-				String mobile = "";
-				String regDate = "";
-				String orgName = "";
-				if(valueStr != null){
-					String[] split = valueStr.split(";");
-					mobile = split[0];//电话
-					regDate = split[1];//注册时间
-					orgName = split[2];//机构名称
-				}
-				
-				
-				cell = row.createCell(1);
-				cell.setCellValue(mobile);
-				cell = row.createCell(2);
-				cell.setCellValue(regDate);
-				cell = row.createCell(3);
-				cell.setCellValue(orgName);
-				
-				cell = row.createCell(4);//用户类型
-				String type = userMap.get(accountName);
-				cell.setCellValue(type);
-				cell = row.createCell(5);//ip地址
-				Set<String> ipStr = ipMap.get(accountName);
-				Set<String> addSet = new HashSet<String>();
-				for(String s : ipStr){
-					Map<String, String> location = IPSeeker.getInstance().getLocation(s.trim());
-					String province=location.get("province")==null?"":location.get("province");
-					String city=location.get("city")==null?"":location.get("city");
-					addSet.add(province+"-"+city);
-//					map.put("user_area", province+city);
-				}
-				cell.setCellValue(addSet.toString());
-				
-				cell = row.createCell(6);//付费权限时间范围
-				cell.setCellValue(payUserMap.get(accountName));
-				
-				cell = row.createCell(7);//试用权限时间范围
-				cell.setCellValue(tryUserMap.get(accountName));
-				
-				cell = row.createCell(8);//总登录次数
-				cell.setCellValue(loginMap.get(accountName));
-				
-				cell = row.createCell(9);//总登录天次
-				cell.setCellValue(loginDateMap.get(accountName));
-				
-				cell = row.createCell(10);
-				Set<String> set = salerMap.get(accountName);
-				cell.setCellValue(set==null?"":set.toString());
-				rowUserop++;
-			}
-			
-		
-			long time = System.currentTimeMillis();
-			String fileName = workbookStr+time+".xlsx";
-			
-			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
-			workbook.write(out);
-			workbook.close();
+			ExcelPoiCommon.readWriteExcel(file, countMap, 0, 2, 5);
+//			long time = System.currentTimeMillis();
+//			String fileName = workbookStr+time+".xlsx";
+//			workbook.write(out);
+//			workbook.close();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -365,40 +135,11 @@ public class testExecl{
 			DB db = mongoClient.getDB("gg_openapi");
 			
 			DBCollection useropRecord = db.getCollection("userop_record");
-//			DBCollection loginRecord = db.getCollection("login_record");
-//			DBCollection accountrelation = db.getCollection("accountrelation");
-//			DBCollection userListStatistics = db.getCollection("user_list_statistics");
-//			DBCollection collectionLog = db.getCollection("version_upgrade_log");
-			
-
 //			File file = new File("C:\\Users\\yutao\\Desktop\\2016年度终端用户数据.xls");
 //			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(1, 0, file);
 			Map<String, Set<String>> payUser = new HashMap<String, Set<String>>();
-			/*Date date01 = DateUtil.stringToDate("2016-01-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date01, "yyyy-MM"), PayUsers.getMonthPayUsers(date01));
-			Date date02 = DateUtil.stringToDate("2016-02-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date02, "yyyy-MM"), PayUsers.getMonthPayUsers(date02));
-			Date date03 = DateUtil.stringToDate("2016-03-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date03, "yyyy-MM"), PayUsers.getMonthPayUsers(date03));
-			Date date04 = DateUtil.stringToDate("2016-04-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date04, "yyyy-MM"), PayUsers.getMonthPayUsers(date04));
-			Date date05 = DateUtil.stringToDate("2016-05-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date05, "yyyy-MM"), PayUsers.getMonthPayUsers(date05));
-			Date date06 = DateUtil.stringToDate("2016-06-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date06, "yyyy-MM"), PayUsers.getMonthPayUsers(date06));*/
-			/*Date date07 = DateUtil.stringToDate("2016-07-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date07, "yyyy-MM"), PayUsers.getMonthPayUsers(date07));
-			Date date08 = DateUtil.stringToDate("2016-08-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date08, "yyyy-MM"), PayUsers.getMonthPayUsers(date08));
-			Date date09 = DateUtil.stringToDate("2016-09-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date09, "yyyy-MM"), PayUsers.getMonthPayUsers(date09));
-			Date date10 = DateUtil.stringToDate("2016-10-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date10, "yyyy-MM"), PayUsers.getMonthPayUsers(date10));
-			Date date11 = DateUtil.stringToDate("2016-11-01", "yyyy-MM");
-			payUser.put(DateUtil.dateToString(date11, "yyyy-MM"), PayUsers.getMonthPayUsers(date11));*/
 			Date date12 = DateUtil.stringToDate("2016-12-31", "yyyy-MM");
 			payUser.put(DateUtil.dateToString(date12, "yyyy-MM"), PayUsers.getMonthPayUsers(date12));
-//			Set<String> payUsers12 = PayUsers.getMonthPayUsers(date12);
 			Set<String> yearPayUsers = PayUsers.getYearPayUsers(DateUtil.stringToDate("2016-01-01", "yyyy-MM-dd"), date12);
 			
 			BasicDBObject useropQuery = new BasicDBObject();
@@ -423,11 +164,8 @@ public class testExecl{
 				DBObject o = useropCursor.next();
 				Object datetime = o.get("createtime");
 				if(datetime != null){
-//					String dateToString = DateUtil.dateToString((Date)datetime, "yyyy-MM");//日期
-//					String accountName = o.get("account_name").toString();//账号
 					String accountId = o.get("account_id").toString();
 					
-//					String dateAccount = dateToString + ";" + accountName + ";" + accountId;
 					String dateAccount = accountId;
 					
 					Integer accountInt = accountMap.get(dateAccount);
@@ -459,44 +197,9 @@ public class testExecl{
 						accountMap.put(dateAccount, ++accountInt);
 					}
 					quchong2.add(accountId);
-					/*Set<String> set = accountCount.get(dateToString);
-					if(set==null){
-						set = new HashSet<String>();
-						set.add(accountName);
-						accountCount.put(dateToString, set);
-					}else{
-						set.add(accountName);
-					}*/
 				}
 			}
 			useropCursor.close();
-//			Map<String, Integer> payMap = new HashMap<String, Integer>();
-/*			Map<String, Integer> resultMap = new HashMap<String, Integer>();
-			for(Map.Entry<String, Integer> m : accountMap.entrySet()){
-				Integer value = m.getValue();//每个账号该登录的次数
-				String key = m.getKey();
-				String[] split = key.split(";");
-				String date = split[0];
-//				String accountName = split[1];
-				String accountId = split[2];
-				if(value >= 4){
-					Integer dateInt = resultMap.get(date);
-					if(dateInt == null){
-						resultMap.put(date, Integer.valueOf(1));
-					}else{
-						resultMap.put(date, ++dateInt);
-					}
-					
-					if(payUser.get(date).contains(accountId)){
-						Integer payInt = payMap.get(date);
-						if(payInt == null){
-							payMap.put(date, Integer.valueOf(1));
-						}else{
-							payMap.put(date, ++payInt);
-						}
-					}
-				}
-			}*/
 			
 			XSSFWorkbook workbook = new XSSFWorkbook();
 			XSSFSheet sheet = workbook.createSheet("终端3.0每个月的活跃用户");
