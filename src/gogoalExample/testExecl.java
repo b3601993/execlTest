@@ -10,21 +10,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.xmlbeans.impl.piccolo.io.FileFormatException;
 
 import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBList;
@@ -77,23 +71,22 @@ public class testExecl{
 //			DBCollection collectionLog = db.getCollection("version_upgrade_log");
 //			DBCollection userSum = db.getCollection("user_sum");
 			
-			
-			File file = new File("C:\\Users\\yutao\\Desktop\\需要统计的报表0508.xlsx");
-			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(0, 2, file);
+			File file = new File("C:\\Users\\yutao\\Desktop\\试用用户使用数据中心的统计.xls");
+			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(2, 0, file);
 			
 			BasicDBObject match = new BasicDBObject();
 			
-			match.append("type", new BasicDBObject("$in", new Object[]{0,1,2}));
-			match.append("code", "S2_l09");
+			match.append("type", new BasicDBObject("$in", new Object[]{3}));
+			match.append("code", "G3_10");
 			match.append("account_name", new BasicDBObject("$in", accountNameSet));
 			BasicDBObject timeQuery = new BasicDBObject();
-			timeQuery.append("$lte", DateUtil.stringToDate("2016-12-31", "yyyy-MM-dd"));
-			timeQuery.append("$gte", DateUtil.stringToDate("2016-03-01", "yyyy-MM-dd"));
+//			timeQuery.append("$lte", DateUtil.stringToDate("2016-08-05", "yyyy-MM-dd"));
+			timeQuery.append("$gte", DateUtil.stringToDate("2016-08-05", "yyyy-MM-dd"));
 			match.append("createtime", timeQuery);
 			
 			BasicDBObject group = new BasicDBObject();
 			group.append("_id", "$account_name");
-			group.append("loginCount", new BasicDBObject("$sum", 1));
+			group.append("loginCount", new BasicDBObject("$sum", 1));//该模块的点击次数
 			
 			AggregationOutput output = useropRecord.aggregate(new BasicDBObject("$match", match), 
 								   new BasicDBObject("$group", group));
@@ -104,7 +97,7 @@ public class testExecl{
 				DBObject o = iterator.next();
 				countMap.put(o.get("_id").toString(), o.get("loginCount"));
 			}
-			ExcelPoiCommon.readWriteExcel(file, countMap, 0, 2, 5);
+			ExcelPoiCommon.readWriteExcel(file, countMap, 2, 0, 1);
 //			long time = System.currentTimeMillis();
 //			String fileName = workbookStr+time+".xlsx";
 //			workbook.write(out);
@@ -372,88 +365,6 @@ public class testExecl{
 
 	
 	/**
-	 * 
-	 * 
-	 * @author yutao
-	 * @date 2017年1月3日上午10:06:52
-	 */
-	public static void getlianghua() {
-		try {
-			//连接数据库 start
-			MongoCredential credential = MongoCredential.createMongoCRCredential("gg_openapi", "gg_openapi", "gg..openapi#!".toCharArray());
-			ServerAddress serverAddress = new ServerAddress("106.75.51.20", 35520);
-			List<ServerAddress> addrs = new ArrayList<ServerAddress>();  
-            addrs.add(serverAddress);
-            List<MongoCredential> credentials = new ArrayList<MongoCredential>();
-            credentials.add(credential);
-			MongoClient mongoClient = new MongoClient(addrs, credentials);
-			//连接数据库 end
-			DB db = mongoClient.getDB("gg_openapi");
-			
-			DBCollection useropRecord = db.getCollection("userop_record");
-//			DBCollection loginRecord = db.getCollection("login_record");
-//			DBCollection accountrelation = db.getCollection("accountrelation");
-//			DBCollection userListStatistics = db.getCollection("user_list_statistics");
-//			DBCollection collectionLog = db.getCollection("version_upgrade_log");
-			
-			//用户点击统计排名前20的
-//			XSSFWorkbook workbook = getClickNum(accountrelation, userListStatistics);
-//			//得到登录次数，天数，开始时间，结束时间
-//			File file = new File("C:\\Users\\yutao\\Desktop\\CMS产品类型：中国量化投资俱乐部名单2016-12-14.xls");
-//			XSSFWorkbook workbook = getLoginStartLastTime(useropRecord, file);
-			
-			BasicDBObject query = new BasicDBObject();
-			query.append("status", 1);
-			query.append("code", "S3_03");
-			query.append("type", 3);
-			DBCursor cursor = useropRecord.find(query);
-			Map<String, Integer> map = new HashMap<String, Integer>();
-			while(cursor.hasNext()){
-				DBObject o = cursor.next();
-				String dateToString = DateUtil.dateToString((Date)o.get("createtime"), "yyyy-MM-dd");
-				Integer dateInt = map.get(dateToString);
-				if(dateInt == null){
-					map.put(dateToString, Integer.valueOf(1));
-				}else{
-					map.put(dateToString, ++dateInt);
-				}
-			}
-			cursor.close();
-			
-			XSSFWorkbook workbook = new XSSFWorkbook();
-			XSSFSheet sheet = workbook.createSheet("终端3.0每天的下载量");
-			XSSFRow row = sheet.createRow(0);
-			XSSFCell cell = row.createCell(0);
-			cell.setCellValue("日期");
-			cell = row.createCell(1);
-			cell.setCellValue("次数");
-			int rowUserop=1;
-			for(Map.Entry<String, Integer> m : map.entrySet()){
-				Integer value = m.getValue();
-				String key = m.getKey();
-				
-				row = sheet.createRow(rowUserop);
-				cell = row.createCell(0);
-				cell.setCellValue(key);
-				cell = row.createCell(1);
-				cell.setCellValue(value);
-				rowUserop++;
-			}
-			
-			
-		    
-			long time = System.currentTimeMillis();
-			String fileName = "终端3.0每天的下载量"+time+".xlsx";
-			
-			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
-			workbook.write(out);
-			workbook.close();
-		}catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
 	 * 得到登录次数，天数，开始时间，结束时间
 	 * @param useropRecord
 	 * @param file
@@ -543,84 +454,6 @@ public class testExecl{
 		return workbook;
 	}
 	
-	/**
-	 * 用户点击前20的统计
-	 * @param accountrelation
-	 * @param userListStatistics
-	 * @return
-	 * @author yutao
-	 * @date 2016年12月15日下午1:16:01
-	 */
-	public static XSSFWorkbook getClickNum(DBCollection accountrelation, DBCollection userListStatistics) {
-		BasicDBObject match = new BasicDBObject();
-		match.append("account_id", new BasicDBObject("$ne", "0"));
-		List<String> list = new ArrayList<String>();
-		list.add("付费用户");
-		list.add("试用用户");
-		match.append("user_type", new BasicDBObject("$in", list));
-		
-		BasicDBObject group = new BasicDBObject();
-		group.append("_id", "$account_id");
-		group.append("user_type", new BasicDBObject("$addToSet", "$user_type"));
-		group.append("history_count",new BasicDBObject("$max", "$history_count"));
-		
-		BasicDBObject sort = new BasicDBObject();
-		sort.append("history_count", -1);
-		
-		BasicDBObject limit = new BasicDBObject();
-		limit.append("$limit", 20);
-		
-		AggregationOutput output = userListStatistics.aggregate(new BasicDBObject("$match", match), 
-																new BasicDBObject("$group", group),
-																new BasicDBObject("$sort", sort),
-																limit);
-		Iterator<DBObject> iterator = output.results().iterator();
-		Map<String, Object> map = new HashMap<String, Object>();
-		Set<Integer> accountSet = new HashSet<Integer>();
-		while(iterator.hasNext()){
-			DBObject o = iterator.next();
-			String accountId = o.get("_id").toString();
-			accountSet.add(Integer.valueOf(accountId));
-			map.put(accountId, o.get("history_count"));
-		}
-		BasicDBObject accountQuery = new BasicDBObject();
-		accountQuery.append("account_id", new BasicDBObject("$in", accountSet));
-		DBCursor cursor = accountrelation.find(accountQuery);
-//		Map<String, String>	 mm = new HashMap<String, String>();
-		
-		XSSFWorkbook workbook = new XSSFWorkbook();
-		XSSFSheet sheet = workbook.createSheet("gogoal3.0登陆情况");
-		XSSFRow row = sheet.createRow(0);
-		XSSFCell cell = row.createCell(0);
-		cell.setCellValue("gogoal账号");
-		cell = row.createCell(1);
-		cell.setCellValue("点击次数");
-		cell = row.createCell(2);
-		cell.setCellValue("机构名称");
-		cell = row.createCell(3);
-		cell.setCellValue("使用人名称");
-		int rowUserop=1;
-		
-		while(cursor.hasNext()){
-			DBObject o = cursor.next();
-			
-			String accountName = o.get("account_name") == null ? "暂时没有账号" : o.get("account_name").toString();
-			String fullName = o.get("full_name") == null ? "暂时没有名称" : o.get("full_name").toString();
-			String orgName = o.get("org_name") == null ? "暂时没有机构名称" : o.get("org_name").toString();
-			row = sheet.createRow(rowUserop);
-			cell = row.createCell(0);
-			cell.setCellValue(accountName);
-			cell = row.createCell(1);
-			cell.setCellValue(map.get(o.get("account_id").toString()).toString());
-			cell = row.createCell(2);
-			cell.setCellValue(orgName);
-			cell = row.createCell(3);
-			cell.setCellValue(fullName);
-			rowUserop++;
-		}
-		cursor.close();
-		return workbook;
-	}
 	
 	/**
 	 * 具体某个机构访问情况
@@ -923,109 +756,6 @@ public class testExecl{
 	}
 	
 	
-	
-	/**
-	 * 付费用户留存量与活跃度
-	 * 
-	 * @author yutao
-	 * @date 2016年9月9日下午4:14:48
-	 */
-	public void exportLogin(){
-		try {
-			//连接数据库 start
-			MongoCredential credential = MongoCredential.createMongoCRCredential("gg_openapi", "gg_openapi", "gg..openapi#!".toCharArray());
-			ServerAddress serverAddress = new ServerAddress("42.62.50.226", 35520);
-			List<ServerAddress> addrs = new ArrayList<ServerAddress>();  
-            addrs.add(serverAddress);
-            List<MongoCredential> credentials = new ArrayList<MongoCredential>();
-            credentials.add(credential);
-			MongoClient mongoClient = new MongoClient(addrs, credentials);
-			//连接数据库 end
-			
-			DB db = mongoClient.getDB("gg_openapi");
-			
-			DBCollection userSum = db.getCollection("user_sum");
-			DBCollection payUsersActive = db.getCollection("pay_users_active");
-			
-			//找出登录过3.0的用户（只去统计8月5号之后的数据）
-//			Date maxDate = DateUtil.stringToDate("2016-08-05", "yyyy-MM-dd");
-			DBCursor userSumCursor = userSum.find();
-			Map<String, Integer> userSumMap = new HashMap<String, Integer>();
-			
-			while(userSumCursor.hasNext()){
-				DBObject o = userSumCursor.next();
-				Object payUserCount = o.get("pay_user_count");
-				Object date = o.get("statistics_time");
-				if(date !=null){
-					String dateToString = DateUtil.dateToString((Date)date, "yyyy-MM-dd");
-					userSumMap.put(dateToString, Integer.parseInt(payUserCount.toString()));
-				}
-			}
-			userSumCursor.close();
-			Set<String> dateSet = new LinkedHashSet<String>();
-			DBCursor cursor = payUsersActive.find().sort(new BasicDBObject("statistics_time", -1));
-			Map<String, String> activeMap = new HashMap<String, String>();
-			while(cursor.hasNext()){
-				DBObject o = cursor.next();
-				Object date = o.get("statistics_time");
-				if(date != null){
-					String activeSum = o.get("active_sum").toString();
-					String remainSum = o.get("remain_sum").toString();
-					String dateString = DateUtil.dateToString((Date)date, "yyyy-MM-dd");
-					dateSet.add(dateString);
-					
-					activeMap.put(dateString, activeSum+";"+remainSum);
-				}
-			}
-			cursor.close();
-			
-
-			
-			XSSFWorkbook workbook = new XSSFWorkbook(); //创建一个空白的工作薄
-			XSSFSheet sheet = workbook.createSheet("账户登录情况");
-			XSSFRow row = sheet.createRow(0);
-			XSSFCell cell = row.createCell(0);
-			cell.setCellValue("统计时间");
-			cell = row.createCell(1);
-			cell.setCellValue("留存度");
-			cell = row.createCell(2);
-			cell.setCellValue("活跃度");
-			cell = row.createCell(3);
-			cell.setCellValue("付费用户总数");
-			
-			int rowUserop=1;
-			
-			for(String d : dateSet){
-				
-				 String activeRemain = activeMap.get(d);
-				 String[] split = activeRemain.split(";");
-				 int remain = Integer.parseInt(split[0]);
-				 int active = Integer.parseInt(split[1]);
-				 Integer paySum = userSumMap.get(d);
-				
-				row = sheet.createRow(rowUserop);
-				cell = row.createCell(0);
-				cell.setCellValue(d);
-				cell = row.createCell(1);
-				cell.setCellValue(remain);
-				cell = row.createCell(2);
-				cell.setCellValue(active);
-				cell = row.createCell(3);
-				cell.setCellValue(paySum);
-				rowUserop++;
-			}
-			
-			long time = System.currentTimeMillis();
-			String fileName = "付费用户留存量与活跃度"+time+".xlsx";
-			
-//			String fileNa = java.net.URLEncoder.encode(fileName != null ? fileName : "数据导出.xls", "UTF-8");
-			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
-			workbook.write(out);
-			workbook.close();
-		}catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	/**
 	 * 当前付费用户账号信息

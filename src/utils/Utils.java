@@ -1,6 +1,10 @@
 package utils;
 
 import java.io.UnsupportedEncodingException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class Utils {
 
@@ -84,5 +88,58 @@ public class Utils {
         sb.append(ip[3] & 0xFF);
         return sb.toString();
     }
+    
+    /**
+	 * 去掉字段中的时间
+	 * @param html
+	 * @return
+	 * @author yutao
+	 * @date 2017年5月4日下午5:22:56
+	 */
+	public static String replaceDate(String html){
+		String regDateTime = "[\\d-:]"; //定义date的正则表达式 
+		Pattern pattern = Pattern.compile(regDateTime);
+		Matcher matcher = pattern.matcher(html);
+		
+		html = matcher.replaceAll("");
+		return html.trim();
+	}
+	
+	/**
+	 * 是否包含特殊字符
+	 * @param keyWord
+	 * @return
+	 * @author yutao
+	 * @date 2017年2月24日上午9:43:19
+	 */
+	public static boolean isSpecialchar(String keyWord){
+		if(StringUtils.isNotBlank(keyWord)){
+			 String regEx = "[`~!@#^&*+=|{}':',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？\\\\]";
+			 Pattern pattern = Pattern.compile(regEx);
+			 Matcher m = pattern.matcher(keyWord);
+			 if(m.find()){
+				 return true;
+			 }
+		 }
+		return false;
+	}
+	
+	/**
+	 * 去除特殊字符
+	 * @param keyWord
+	 * @return
+	 * @author yutao
+	 * @date 2017年5月10日下午4:01:13
+	 */
+	public static String deleteSpecialchar(String keyWord){
+		if(keyWord == null){
+			return null;
+		}
+		String regEx = "[`~!@#^&*+=|{}':',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？\\\\]";
+		Pattern p = Pattern.compile(regEx);  
+		Matcher m = p.matcher(keyWord);  
+		keyWord = m.replaceAll("");
+		return keyWord;
+	}
     
 }

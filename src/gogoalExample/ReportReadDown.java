@@ -5,18 +5,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -26,7 +21,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 
-import gogoalExample.common.ExcelPoiCommon;
 import utils.DateUtil;
 /**
  * 研报使用情况
@@ -62,28 +56,34 @@ public class ReportReadDown {
 //			DBCollection payUser = db.getCollection("t_paySys_user_permi");
 //			DBCollection userListStatistics = db.getCollection("user_list_statistics");
 //			DBCollection collectionLog = db.getCollection("version_upgrade_log");
-			DBCollection report = db.getCollection("gg_report_down_read");
+			DBCollection register = db.getCollection("register_record");
 
 //			File file = new File("C:\\Users\\yutao\\Desktop\\研报使用统计.xlsx");
 //			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(0, 1, file);
-			BasicDBObject query = new BasicDBObject();
-			query.append("down_sum", new BasicDBObject("$gte", 20));
-			DBCursor cursor = report.find(query);
 			
+			BasicDBObject regQuery = new BasicDBObject();
+			regQuery.append("source", 4);
+			BasicDBObject timeQuery = new BasicDBObject();
+			timeQuery.append("$lt", DateUtil.stringToDate("2017-05-01", "yyyy-MM-dd"));
+			timeQuery.append("$gte", DateUtil.stringToDate("2017-04-01", "yyyy-MM-dd"));
+			regQuery.append("register_time", timeQuery);
+			regQuery.append("account_id", new BasicDBObject("$ne", null));
+			
+			DBCursor cursor = register.find(regQuery).sort(new BasicDBObject("register_time", -1));
 			
 			
 			XSSFWorkbook workbook = new XSSFWorkbook();
-			String workbookStr = "下载研报超过20次使用情况";
+			String workbookStr = "4月份注册用户";
 			XSSFSheet sheet = workbook.createSheet(workbookStr);
 			XSSFRow row = sheet.createRow(0);
 			XSSFCell cell = row.createCell(0);
-			cell.setCellValue("日期");
-			cell = row.createCell(1);
 			cell.setCellValue("账号");
+			cell = row.createCell(1);
+			cell.setCellValue("手机号");
 			cell = row.createCell(2);
-			cell.setCellValue("下载次数");
+			cell.setCellValue("邮箱");
 			cell = row.createCell(3);
-			cell.setCellValue("机构名称");
+			cell.setCellValue("账号类型");
 			
 			int rowUserop=1;
 			
@@ -92,14 +92,13 @@ public class ReportReadDown {
 				
 				row = sheet.createRow(rowUserop);
 				cell = row.createCell(0);
-				cell.setCellValue(DateUtil.dateToString((Date)o.get("createtime"), "yyyy-MM-dd"));
-				cell = row.createCell(1);
 				cell.setCellValue(o.get("account_name").toString());
+				cell = row.createCell(1);
+				cell.setCellValue(o.get("mobile")==null?null:o.get("mobile").toString());
 				cell = row.createCell(2);
-				cell.setCellValue(o.get("down_sum").toString());
+				cell.setCellValue(o.get("email")==null?null:o.get("email").toString());
 				cell = row.createCell(3);
-				cell.setCellValue(o.get("org_name").toString());
-				
+				cell.setCellValue(o.get("role").toString());
 				rowUserop++;
 			}
 			
