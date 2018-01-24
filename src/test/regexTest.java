@@ -1,5 +1,5 @@
 package test;
-public class test {
+public class regexTest {
 
 	public static void main(String[] args) {
 		String xx = "a1anda2anda11anda21<10anda111a";
@@ -17,6 +17,9 @@ public class test {
 		System.out.println (xx.replaceAll (a11, "a11>12"+"$1"));
 		System.out.println (xx.replaceAll (a111, "a111>10"+"$1"));
 		System.out.println (aa.replaceAll (reg, "$1"+"=="+"$2"));
+		
+		byte a = -9;
+		System.out.println(Integer.toHexString(a));
 		
 	}
 
