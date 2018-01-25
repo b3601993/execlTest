@@ -1,6 +1,7 @@
 package sshTest;
 
 import sshTest.tran.Session;
+import sshTest.utils.Utils;
 
 public class Client {
 
