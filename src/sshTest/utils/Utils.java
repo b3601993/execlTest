@@ -1,12 +1,7 @@
 package sshTest.utils;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class Utils {
 
@@ -117,9 +112,5 @@ public class Utils {
 			}
 		}
 		return result;
-	}
-	
-	public static void main(String[] args) {
-		System.out.println(diffString("a,b,c,d", new String[]{"c"}));
 	}
 }
