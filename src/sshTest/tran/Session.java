@@ -118,8 +118,9 @@ public class Session {
 				//小于5就说明真正的有效数据发生丢失啦！
 //				start_discard(buf, s2ccipher, s2cmac, j, PACKET_MAX_SIZE);
 			}
-			//j表示的是包的总长度
-			//need就是真正的有效载荷的数据
+			//j表示的是包的总长度 + 4 就完全包含前面的字节，再减8就是需要解码的数据包的长度
+			//need就是需要解密的数据包的长度
+			//RFC 4253 6 Binary Packet Protocol z最后一句话中有说明
 			int need = j + 4 - s2ccipher_size;
 			if((buf.index + need)> buf.buffer.length){
 				
