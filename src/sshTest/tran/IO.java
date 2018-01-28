@@ -36,19 +36,23 @@ public class IO {
 	public void setOut_ext(OutputStream out_ext) {
 		this.out_ext = out_ext;
 	}
-
+	
+	/**
+	 * 读取指定长度的字节到指定的字节数组中
+	 * @param array
+	 * @param begin
+	 * @param length
+	 * @throws IOException
+	 */
 	public void getByte(byte[] array, int begin, int length) throws IOException {
-		/*do{
+		do{
 			int read = in.read(array, begin, length);
+			if(read < 0){
+				throw new IOException("End of IO Stream Read");
+			}
 			begin += read;
 			length -= read;
-		}while(length > 0);*/
-		int read = in.read(array, begin, length);
-		while(read > 0){
-			begin += read;
-			length -= read;
-			read = in.read(array, begin, length);
-		}
+		}while(length > 0);
 	}
 	
 	

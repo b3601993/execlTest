@@ -19,6 +19,12 @@ public class Buffer {
 	public Buffer(){
 		this(1024 * 10 * 2);
 	}
+	
+	public Buffer(byte[] buffer) {
+		this.buffer = buffer;
+		index = 0;
+		s = 0;
+	}
 
 	public void putByte(byte foo) {
 		buffer[index++] = foo;
@@ -103,5 +109,57 @@ public class Buffer {
 	public void reset() {
 		index = 0;
 		s = 0;
+	}
+
+	public byte getCommand() {
+		return buffer[5];
+	}
+
+	/**
+	 * 将数组的起始位置置为0
+	 */
+	public void rewind() {
+		s = 0;
+	}
+
+	/**
+	 * 其实就是手动进行拼接成int型
+	 * @return
+	 */
+	public int getInt() {
+		int foo = getShort();
+		foo = (foo << 16) & 0xffff0000 | (getShort() & 0xffff);
+		return foo;
+	}
+	/**
+	 * 因为short是两个字节
+	 * 所以需要手动进拼接
+	 */
+	public int getShort() {
+		int foo = getByte();
+		foo = ((foo << 8) & 0xff00) | (getByte() & 0xff);
+		return foo;
+	}
+
+	public int getByte() {
+		return (buffer[s++] & 0xff);
+	}
+
+	public byte[] getString() {
+		int i = getInt(); // uint32
+		if (i < 0 || // bigger than 0x7fffffff
+				i > 256 * 1024) {
+			// TODO: an exception should be thrown.
+			i = 256 * 1024; // the session will be broken, but working around
+							// OOME.
+		}
+		byte[] foo = new byte[i];
+		getByte(foo, 0, i);
+		return foo;
+	}
+	
+	void getByte(byte[] foo, int start, int len) {
+		System.arraycopy(buffer, s, foo, start, len);
+		s += len;
 	}
 }

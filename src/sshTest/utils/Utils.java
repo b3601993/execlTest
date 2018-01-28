@@ -113,4 +113,23 @@ public class Utils {
 		}
 		return result;
 	}
+	/**
+	 * 字节转字符串
+	 * @param cp
+	 * @param s
+	 * @param l
+	 * @return
+	 */
+	public static String byte2str(byte[] cp, int s, int l) {
+		return byte2str(cp, s, l, "UTF-8");
+	}
+
+	private static String byte2str(byte[] cp, int s, int l, String encoding) {
+		try {
+			return new String(cp, s, l, encoding);
+		} catch (UnsupportedEncodingException e) {
+			return new String(cp, s, l);
+		}
+		
+	}
 }

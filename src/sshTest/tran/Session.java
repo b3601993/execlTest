@@ -18,6 +18,13 @@ import sshTest.utils.Utils;
 public class Session {
 	
 	static final Logger logger = LogManager.getLogger(Session.class.getName());
+	
+	static final int SSH_MSG_DISCONNECT = 1;
+	static final int SSH_MSG_IGNORE = 2;// ignore
+	static final int SSH_MSG_UNIMPLEMENTED = 3;// unimplemented
+	static final int SSH_MSG_DEBUG = 4;// debug
+	static final int SSH_MSG_SERVICE_REQUEST = 5;// service_request
+	static final int SSH_MSG_SERVICE_ACCEPT = 6;// service_accept
 	// kexinit
 	static final int SSH_MSG_KEXINIT = 20;
 	// packet_max_size
@@ -27,6 +34,11 @@ public class Session {
 	private static byte[] V_C = Utils.str2Byte("SSH-2.0-YUTAO-1.0.0");
 	// the payload of the client's SSH_MSG_KEXINIT
 	private byte[] I_C; 
+	private byte[] I_S; // the payload of the server's SSH_MSG_KEXINIT
+	
+	private int seqi = 0;
+	
+	String[] guess = null;
 	
 	private volatile boolean isConnected = false;
 	
@@ -77,14 +89,51 @@ public class Session {
 			//客户端已经发送完了，SSH_MSG_KEXINIT数据包
 			//接下来开始接收服务器端返回的SSH_MSG_KEXINIT数据包
 			buf = read(buf);
+			if(buf.getCommand() != SSH_MSG_KEXINIT){
+				//说明密钥交互失败，需要再次执行
+				in_kex = false;
+				throw new JSchException("invalid protocol: " + buf.getCommand());
+			}
+			logger.info("SSH_MSG_KEXINIT received");
 			
+			
+			recieive_kexinit(buf);
+				
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 	
+	/**
+	 * 解析来自服务器的数据
+	 * @param buf
+	 * @throws Exception 
+	 */
+	private void recieive_kexinit(Buffer buf) throws Exception {
+		int j = buf.getInt();
+		//如果数据包的长度和实际的字节长度不一致说明数据被压缩啦！
+		if(j != buf.getLength()){
+			buf.getByte();
+			//压缩后的payload字节大小
+			I_S = new byte[buf.index - 5];
+		}else{
+			//没有压缩的payload字节大小
+			I_S = new byte[j - 1 - buf.getByte()];
+		}
+		//I_S里面装的就是payload字节
+		System.arraycopy(buf.buffer, buf.s, I_S, 0, I_S.length);
+		//接收到的不是SSH_MSG_KEXINIT 需要重新发送
+		if(!in_kex){
+			send_kexinit();
+		}
+		//协商或者猜测 出了服务端和客户端都支持的算法
+		//代码里是以客户端为外层进行循环比较的
+		guess = KeyExchange.guess(I_S, I_C);
+		
+	}
+
+
 	private int s2ccipher_size = 8;
 	private int c2scipher_size = 8;
 	
@@ -100,7 +149,7 @@ public class Session {
 		int j = 0;
 		while(true){
 			buf.reset();
-			//读取流中的数据到buffer中，一次最多读取8个字节，直到全部读取完毕
+			//读取流中的数据到buffer中，只读取8个字节
 			io.getByte(buf.buffer, buf.index, s2ccipher_size);
 			buf.index += s2ccipher_size;
 			/*if (s2ccipher != null) {
@@ -120,15 +169,73 @@ public class Session {
 			}
 			//j表示的是包的总长度 + 4 就完全包含前面的字节，再减8就是需要解码的数据包的长度
 			//need就是需要解密的数据包的长度
-			//RFC 4253 6 Binary Packet Protocol z最后一句话中有说明
+			//RFC 4253 6 Binary Packet Protocol 最后一句话中有说明
 			int need = j + 4 - s2ccipher_size;
+			//如果现有的数组装不下，就要进行扩容
 			if((buf.index + need)> buf.buffer.length){
-				
+				byte[] foo = new byte[buf.index + need];
+				System.arraycopy(buf.buffer, 0, foo, 0, buf.index);
+				buf.buffer = foo;
+			}
+			//因为包都是8的整数倍
+			if(need % s2ccipher_size != 0){
+				String message = "Bad packet length " + need;
+				logger.fatal(message);
+//				start_discard(buf, s2ccipher, s2cmac, j, PACKET_MAX_SIZE);
 			}
 			
+			if(need > 0){
+				//开始真正的去读取有效数据
+				io.getByte(buf.buffer, buf.index, need);
+				buf.index += need;
+				/*if (s2ccipher != null) {
+					s2ccipher.update(buf.buffer, s2ccipher_size, need, buf.buffer, s2ccipher_size);
+				}*/
+			}
+			
+			/*if (s2cmac != null) {
+				s2cmac.update(seqi);
+				s2cmac.update(buf.buffer, 0, buf.index);
+
+				s2cmac.doFinal(s2cmac_result1, 0);
+				io.getByte(s2cmac_result2, 0, s2cmac_result2.length);
+				if (!java.util.Arrays.equals(s2cmac_result1, s2cmac_result2)) {
+					if (need > PACKET_MAX_SIZE) {
+						throw new IOException("MAC Error");
+					}
+					start_discard(buf, s2ccipher, s2cmac, j, PACKET_MAX_SIZE - need);
+					continue;
+				}
+			}*/
+			//???
+			seqi++;
+			
+			//解压
+			/*if (inflater != null) {
+				// inflater.uncompress(buf);
+				int pad = buf.buffer[4];
+				uncompress_len[0] = buf.index - 5 - pad;
+				byte[] foo = inflater.uncompress(buf.buffer, 5, uncompress_len);
+				if (foo != null) {
+					buf.buffer = foo;
+					buf.index = 5 + uncompress_len[0];
+				} else {
+					System.err.println("fail in inflater");
+					break;
+				}
+			}*/
+			
+			int type = buf.getCommand() & 0xff;
+			if(type == SSH_MSG_DISCONNECT){
+				buf.rewind();
+				buf.getInt();
+				buf.getShort();
+			}
+			break;
 		}
 		
-		return null;
+		buf.rewind();
+		return buf;
 	}
 
 	private volatile boolean in_kex = false;
