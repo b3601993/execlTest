@@ -6,11 +6,27 @@ import sshTest.utils.Utils;
 
 public abstract class KeyExchange {
 
-	static final int PROPOSAL_MAX = 10;
+	public static final int PROPOSAL_KEX_ALGS = 0;
+	public static final int PROPOSAL_ENC_ALGS_CTOS = 2;
+	public static final int PROPOSAL_ENC_ALGS_STOC = 3;
+	public static final int PROPOSAL_MAX = 10;
 	
 	
 	public abstract void init(Session session, byte[] V_S, byte[] V_C, byte[] I_S, byte[] I_C) throws Exception;
+	
+	public abstract int getState();
 
+	public abstract boolean next(Buffer buf);
+	
+	
+	/**
+	 * 猜测算法（协商算法），优先使用数组中的第一个
+	 * @param I_S
+	 * @param I_C
+	 * @return
+	 * @author yutao
+	 * @date 2018年1月29日下午4:49:13
+	 */
 	public static String[] guess(byte[] I_S, byte[] I_C) {
 		String[] guess = new String[PROPOSAL_MAX];
 		Buffer sb = new Buffer(I_S);

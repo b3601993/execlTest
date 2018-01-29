@@ -30,6 +30,8 @@ public class Session {
 	// packet_max_size
 	private static final int PACKET_MAX_SIZE = 256 * 1024;
 	
+	
+	private byte[] V_S; // server version
 	//客户端 -- 标识字串 
 	private static byte[] V_C = Utils.str2Byte("SSH-2.0-YUTAO-1.0.0");
 	// the payload of the client's SSH_MSG_KEXINIT
@@ -41,6 +43,7 @@ public class Session {
 	String[] guess = null;
 	
 	private volatile boolean isConnected = false;
+	private boolean isAuthed = false;
 	
 	private IO io;
 	
@@ -58,6 +61,7 @@ public class Session {
 		
 		io = new IO();
 		try {
+			int i = 0, j;
 			//建立连接时，服务器已经将版本号返回啦！
 			Socket socket = new Socket("192.168.0.110", 22);
 			InputStream in = socket.getInputStream();
@@ -83,6 +87,10 @@ public class Session {
 			}
 			System.out.println(new String(buf.buffer, 0, read));
 			
+			V_S = new byte[i];
+			//将远程主机ssh2版本信息赋值到v_s变量
+			System.arraycopy(buf.buffer, 0, V_S, 0, i);
+			
 			//密钥交换将在发送标识字串后，立即开始
 			//密钥交换和算法协商
 			send_kexinit();
@@ -96,8 +104,15 @@ public class Session {
 			}
 			logger.info("SSH_MSG_KEXINIT received");
 			
-			
-			recieive_kexinit(buf);
+			//调用这个方法之后，就确定了使用哪个算法
+			KeyExchange kex = recieive_kexinit(buf);
+			while(true){
+				buf = read(buf);
+				if(kex.getState() == buf.getCommand()){
+					kex_start_time = System.currentTimeMillis();
+					boolean result = kex.next(buf);
+				}
+			}
 				
 			
 		} catch (Exception e) {
@@ -108,9 +123,10 @@ public class Session {
 	/**
 	 * 解析来自服务器的数据
 	 * @param buf
+	 * @return 
 	 * @throws Exception 
 	 */
-	private void recieive_kexinit(Buffer buf) throws Exception {
+	private KeyExchange recieive_kexinit(Buffer buf) throws Exception {
 		int j = buf.getInt();
 		//如果数据包的长度和实际的字节长度不一致说明数据被压缩啦！
 		if(j != buf.getLength()){
@@ -130,7 +146,26 @@ public class Session {
 		//协商或者猜测 出了服务端和客户端都支持的算法
 		//代码里是以客户端为外层进行循环比较的
 		guess = KeyExchange.guess(I_S, I_C);
+		if(guess == null){
+			throw new JSchException("Algorithm negotiation fail");
+		}
 		
+		if(!isAuthed && (guess[KeyExchange.PROPOSAL_ENC_ALGS_CTOS].equals("none") || 
+				         guess[KeyExchange.PROPOSAL_ENC_ALGS_STOC].equals("none"))){
+			throw new JSchException("NONE Cipher should not be chosen before authentification is successed.");
+		}
+		
+		KeyExchange kex = null;
+		
+		try {
+			Class<?> c = Class.forName(getConfig(guess[KeyExchange.PROPOSAL_KEX_ALGS]));
+			kex = (KeyExchange)c.newInstance();
+		} catch (Exception e) {
+			throw new JSchException(e.toString(), e);
+		}
+		
+		kex.init(this, V_S, V_C, I_S, I_C);
+		return kex;
 	}
 
 
