@@ -1,6 +1,5 @@
 package sshTest.tran;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -11,7 +10,10 @@ import org.apache.logging.log4j.Logger;
 
 import sshTest.JSchException;
 import sshTest.Jsch;
+import sshTest.kex.HostKey;
+import sshTest.kex.HostKeyRepository;
 import sshTest.kex.KeyExchange;
+import sshTest.kex.KnownHosts;
 import sshTest.kex.Signature;
 import sshTest.utils.Utils;
 
@@ -46,11 +48,21 @@ public class Session {
 	private boolean isAuthed = false;
 	
 	private IO io;
+	private String hostKeyAlias = null;
+	
 	
 	//用于生成强随机数
 	static Random random;
 
 	Buffer buf;
+	private UserInfo userinfo;
+	
+	private HostKeyRepository hostkeyRepository = null;
+	Jsch jsch;
+	
+	String host = "127.0.0.1";
+	String org_host = "127.0.0.1";
+	int port = 22;
 	
 	private long kex_start_time = 0L;
 	
@@ -111,15 +123,170 @@ public class Session {
 				if(kex.getState() == buf.getCommand()){
 					kex_start_time = System.currentTimeMillis();
 					boolean result = kex.next(buf);
+					if(!result){
+						in_kex = false;
+						throw new JSchException("verify: " + result);
+					}
+				}else{
+					in_kex = false;
+					throw new JSchException("invalid protocol(kex): " + buf.getCommand());
+				}
+				if(kex.getState() == KeyExchange.STATE_END){
+					break;
 				}
 			}
-				
+			//能执行到这里说明，上面已经验证完毕；
+			//即密钥完成了交换，并且已经确定了会话的ID:K,hash值H也生成好了
+			
+			long tmp = System.currentTimeMillis();
+			in_prompt = true;
+			checkHost(host, port, kex);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
+	private HostKey hostkey = null;
+	
+	private void checkHost(String chost, int port, KeyExchange kex) throws JSchException {
+		String shkc = getConfig("StrictHostKeyChecking");
+		if (hostKeyAlias != null) {
+			chost = hostKeyAlias;
+		}
+		//服务器的公钥
+		byte[] K_S = kex.getHostKey();
+		//算法类型
+		String key_type = kex.getKeyType();
+		//将hash后的值，再进行
+		String key_fprint = kex.getFingerPrint();
+		
+		if(hostKeyAlias == null && port != 22){
+			chost = ("[" + chost + "]:" + port);
+		}
+		
+		//获取已知的服务器的公钥类
+		HostKeyRepository hkr = getHostKeyRepository();
+		//默认是：no
+		String hkh = getConfig("HashKnownHosts");
+		if (hkh.equals("yes") && (hkr instanceof KnownHosts)) {
+			hostkey = ((KnownHosts) hkr).createHashedHostKey(chost, K_S);
+		} else {
+			//根据服务端的主机地址和公钥创建一个hostkey类
+			hostkey = new HostKey(chost, K_S);
+		}
+		
+		int i = 0;
+		synchronized (hkr) {
+			//检查该主机是否之前已经连接过了
+			//个人猜测，可能是验证服务器的公钥是否正确
+			i = hkr.check(chost, K_S);
+		}
+		
+		
+		boolean insert = false;
+		if ((shkc.equals("ask") || shkc.equals("yes")) && i == HostKeyRepository.CHANGED) {
+			String file = null;
+			synchronized (hkr) {
+//				file = hkr.getKnownHostsRepositoryID();
+			}
+			if (file == null) {
+				file = "known_hosts";
+			}
+
+			boolean b = false;
+
+			/*if (userinfo != null) {
+				String message = "WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!\n"
+						+ "IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!\n"
+						+ "Someone could be eavesdropping on you right now (man-in-the-middle attack)!\n"
+						+ "It is also possible that the " + key_type + " host key has just been changed.\n"
+						+ "The fingerprint for the " + key_type + " key sent by the remote host " + chost + " is\n"
+						+ key_fprint + ".\n" + "Please contact your system administrator.\n"
+						+ "Add correct host key in " + file + " to get rid of this message.";
+
+				if (shkc.equals("ask")) {
+					b = userinfo.promptYesNo(message + "\nDo you want to delete the old key and insert the new key?");
+				} else { // shkc.equals("yes")
+					userinfo.showMessage(message);
+				}
+			}*/
+
+			if (!b) {
+				throw new JSchException("HostKey has been changed: " + chost);
+			}
+
+			/*synchronized (hkr) {
+				hkr.remove(chost, kex.getKeyAlgorithName(), null);
+				insert = true;
+			}*/
+		}
+		
+		
+		//下面就是为了提示 认证主机的真实性，目前无法识别，问你是否需要继续连接
+		if ((shkc.equals("ask") || shkc.equals("yes")) && (i != HostKeyRepository.OK) && !insert) {
+			if (shkc.equals("yes")) {
+				throw new JSchException("reject HostKey: " + host);
+			}
+			// System.err.println("finger-print: "+key_fprint);
+			if (userinfo != null) {
+				boolean foo = userinfo.promptYesNo("The authenticity of host '" + host + "' can't be established.\n"
+						+ key_type + " key fingerprint is " + key_fprint + ".\n"
+						+ "Are you sure you want to continue connecting?");
+				if (!foo) {
+					throw new JSchException("reject HostKey: " + host);
+				}
+				insert = true;
+			} else {
+				if (i == HostKeyRepository.NOT_INCLUDED)
+					throw new JSchException(
+							"UnknownHostKey: " + host + ". " + key_type + " key fingerprint is " + key_fprint);
+				else
+					throw new JSchException("HostKey has been changed: " + host);
+			}
+		}
+		
+		if (shkc.equals("no") && HostKeyRepository.NOT_INCLUDED == i) {
+			insert = true;
+		}
+		
+		//远程主机的密钥已经被标记为撤销
+		//从源码的意思中看，视乎是host包含在k_S中就等于该host_key是无效的
+		/*if (i == HostKeyRepository.OK) {
+			HostKey[] keys = hkr.getHostKey(chost, kex.getKeyAlgorithName());
+			String _key = Utils.byte2str(Utils.toBase64(K_S, 0, K_S.length));
+			for (int j = 0; j < keys.length; j++) {
+				if (keys[i].getKey().equals(_key) && keys[j].getMarker().equals("@revoked")) {
+					if (userinfo != null) {
+						userinfo.showMessage("The " + key_type + " host key for " + host + " is marked as revoked.\n"
+								+ "This could mean that a stolen key is being used to " + "impersonate this host.");
+					}
+					if (JSch.getLogger().isEnabled(Logger.INFO)) {
+						JSch.getLogger().log(Logger.INFO, "Host '" + host + "' has provided revoked key.");
+					}
+					throw new JSchException("revoked HostKey: " + host);
+				}
+			}
+		}*/
+		
+		/*if (i == HostKeyRepository.OK && JSch.getLogger().isEnabled(Logger.INFO)) {
+			JSch.getLogger().log(Logger.INFO, "Host '" + host + "' is known and matches the " + key_type + " host key");
+		}*/
+		
+	}
+
+	/**
+	 * Gets the hostkeyRepository. If this.hostkeyRepository is
+	 * <code>null</code>, JSch#getHostKeyRepository() will be invoked.
+	 *
+	 * @see JSch#getHostKeyRepository()
+	 */
+	public HostKeyRepository getHostKeyRepository() {
+		if (hostkeyRepository == null)
+			return jsch.getHostKeyRepository();
+		return hostkeyRepository;
+	}
+
 	/**
 	 * 解析来自服务器的数据
 	 * @param buf
@@ -171,6 +338,10 @@ public class Session {
 
 	private int s2ccipher_size = 8;
 	private int c2scipher_size = 8;
+	
+	private volatile boolean in_kex = false;
+	private volatile boolean in_prompt = false;
+	
 	
 	/**
 	 * 
@@ -273,8 +444,6 @@ public class Session {
 		return buf;
 	}
 
-	private volatile boolean in_kex = false;
-	
 	/**
 	 * 密钥交换和算法协商
 	 * 
@@ -535,7 +704,7 @@ public class Session {
 	 * @return 
 	 * @date 2018年1月25日下午2:07:02
 	 */
-	private String getConfig(String key) {
+	public String getConfig(String key) {
 		return Jsch.config.get(key);
 	}
 	

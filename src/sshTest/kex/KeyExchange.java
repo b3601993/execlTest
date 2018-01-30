@@ -1,5 +1,6 @@
 package sshTest.kex;
 
+
 import sshTest.tran.Buffer;
 import sshTest.tran.Session;
 import sshTest.utils.Utils;
@@ -11,6 +12,13 @@ public abstract class KeyExchange {
 	public static final int PROPOSAL_ENC_ALGS_STOC = 3;
 	public static final int PROPOSAL_MAX = 10;
 	
+	public static final int STATE_END = 0;
+	
+	protected Session session = null;
+	protected HASH sha = null;
+	public byte[] K = null;
+	public byte[] H = null;
+	public byte[] K_S = null;
 	
 	public abstract void init(Session session, byte[] V_S, byte[] V_C, byte[] I_S, byte[] I_C) throws Exception;
 	
@@ -18,6 +26,18 @@ public abstract class KeyExchange {
 
 	public abstract boolean next(Buffer buf);
 	
+	protected final int RSA = 0;
+	protected final int DSS = 1;
+	protected final int ECDSA = 2;
+	private int type = 0;
+	
+	public String getKeyType() {
+		if (type == DSS)
+			return "DSA";
+		if (type == RSA)
+			return "RSA";
+		return "ECDSA";
+	}
 	
 	/**
 	 * 猜测算法（协商算法），优先使用数组中的第一个
@@ -90,5 +110,32 @@ public abstract class KeyExchange {
 
 		return guess;
 	}
+	
+	public String getFingerPrint() {
+		HASH hash = null;
+		try {
+			Class c = Class.forName(session.getConfig("md5"));
+			hash = (HASH) (c.newInstance());
+		} catch (Exception e) {
+			System.err.println("getFingerPrint: " + e);
+		}
+		//这里的hash就是md5
+		return Utils.getFingerPrint(hash, getHostKey());
+	}
 
+	byte[] getK() {
+		return K;
+	}
+
+	byte[] getH() {
+		return H;
+	}
+
+	HASH getHash() {
+		return sha;
+	}
+
+	public byte[] getHostKey() {
+		return K_S;
+	}
 }

@@ -2,6 +2,9 @@ package sshTest;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import sshTest.kex.HostKeyRepository;
+import sshTest.kex.KnownHosts;
+
 public class Jsch {
 
 	static int SSH_MSG_KEXINIT=20;
@@ -25,6 +28,20 @@ public class Jsch {
 		
 		config.put("mac.s2c", "hmac-md5,hmac-sha1,hmac-sha2-256,hmac-sha1-96,hmac-md5-96");
 		config.put("mac.c2s", "hmac-md5,hmac-sha1,hmac-sha2-256,hmac-sha1-96,hmac-md5-96");
+	}
+
+	private HostKeyRepository known_hosts = null;
+	
+	public HostKeyRepository getHostKeyRepository() {
+		if (known_hosts == null)
+			known_hosts = new KnownHosts(this);
+		return known_hosts;
+	}
+
+	public String getConfig(String key) {
+		synchronized (config) {
+			return config.get(key);
+		}
 	}
 	
 }

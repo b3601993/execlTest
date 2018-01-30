@@ -3,6 +3,9 @@ package sshTest.utils;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import sshTest.kex.HASH;
+
+
 public class Utils {
 
 	/**
@@ -123,13 +126,46 @@ public class Utils {
 	public static String byte2str(byte[] cp, int s, int l) {
 		return byte2str(cp, s, l, "UTF-8");
 	}
-
+	
+	/**
+	 * 字节转成字符串，可以指定编码
+	 * @param cp
+	 * @param s
+	 * @param l
+	 * @param encoding
+	 * @return
+	 * @author yutao
+	 * @date 2018年1月30日上午11:36:23
+	 */
 	private static String byte2str(byte[] cp, int s, int l, String encoding) {
 		try {
 			return new String(cp, s, l, encoding);
 		} catch (UnsupportedEncodingException e) {
 			return new String(cp, s, l);
 		}
-		
+	}
+	
+	private static String[] chars = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" };
+	
+	public static String getFingerPrint(HASH hash, byte[] data) {
+		try {
+			hash.init();
+			hash.update(data, 0, data.length);
+			//digest方法完成hash计算，foo是hash后的结果
+			byte[] foo = hash.digest();
+			StringBuffer sb = new StringBuffer();
+			int bar;
+			for (int i = 0; i < foo.length; i++) {
+				bar = foo[i] & 0xff;
+				//再将hash后的结果，转成16进制的字符表示 即：指纹
+				sb.append(chars[(bar >>> 4) & 0xf]);
+				sb.append(chars[(bar) & 0xf]);
+				if (i + 1 < foo.length)
+					sb.append(":");
+			}
+			return sb.toString();
+		} catch (Exception e) {
+			return "???";
+		}
 	}
 }
