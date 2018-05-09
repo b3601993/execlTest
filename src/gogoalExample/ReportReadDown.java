@@ -50,30 +50,42 @@ public class ReportReadDown {
 			//连接数据库 end
 			DB db = mongoClient.getDB("gg_openapi");
 			
-//			DBCollection useropRecord = db.getCollection("userop_record");
+			DBCollection useropRecord = db.getCollection("userop_record");
 //			DBCollection loginRecord = db.getCollection("login_record");
-//			DBCollection accountrelation = db.getCollection("accountrelation");
+			DBCollection accountrelation = db.getCollection("accountrelation");
 //			DBCollection payUser = db.getCollection("t_paySys_user_permi");
 //			DBCollection userListStatistics = db.getCollection("user_list_statistics");
 //			DBCollection collectionLog = db.getCollection("version_upgrade_log");
-			DBCollection register = db.getCollection("register_record");
+//			DBCollection register = db.getCollection("register_record");
 
 //			File file = new File("C:\\Users\\yutao\\Desktop\\研报使用统计.xlsx");
 //			Set<String> accountNameSet = ExcelPoiCommon.getAccountNameSet(0, 1, file);
 			
-			BasicDBObject regQuery = new BasicDBObject();
-			regQuery.append("source", 4);
-			BasicDBObject timeQuery = new BasicDBObject();
-			timeQuery.append("$lt", DateUtil.stringToDate("2017-05-01", "yyyy-MM-dd"));
-			timeQuery.append("$gte", DateUtil.stringToDate("2017-04-01", "yyyy-MM-dd"));
-			regQuery.append("register_time", timeQuery);
-			regQuery.append("account_id", new BasicDBObject("$ne", null));
 			
-			DBCursor cursor = register.find(regQuery).sort(new BasicDBObject("register_time", -1));
+			BasicDBObject query = new BasicDBObject();
+			query.append("code", "G3_02");
+			query.append("status", 1).append("org_id", new BasicDBObject("$ne", 4))
+			.append("type", 3);
+			
+			BasicDBObject timeQuery = new BasicDBObject();
+			timeQuery.append("$gte", DateUtil.stringToDate("2017-07-01", "yyyy-MM-dd"));
+			timeQuery.append("$lte", DateUtil.stringToDate("2018-01-31", "yyyy-MM-dd"));
+			query.append("createtime", timeQuery);
+			
+			DBCursor cursor = useropRecord.find(query).sort(new BasicDBObject("createtime", -1));
+			
+			while(cursor.hasNext()){
+				DBObject o = cursor.next();
+			}
+			cursor.close();
+			
+			
+			
+			
 			
 			
 			XSSFWorkbook workbook = new XSSFWorkbook();
-			String workbookStr = "4月份注册用户";
+			String workbookStr = "";
 			XSSFSheet sheet = workbook.createSheet(workbookStr);
 			XSSFRow row = sheet.createRow(0);
 			XSSFCell cell = row.createCell(0);

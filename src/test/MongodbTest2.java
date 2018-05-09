@@ -1,5 +1,7 @@
 package test;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -7,6 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
@@ -14,6 +20,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
@@ -41,46 +48,87 @@ public class MongodbTest2 {
 			MongoDatabase database = mongoClient.getDatabase("gg_user_db");
 			
 			useropRecord = database.getCollection("userop_record");//埋点表
+			MongoCollection<Document> accountrelation = database.getCollection("accountrelation");
 			
 			BasicDBObject sort = new BasicDBObject();
 			sort.append("createtime", 1);
 			
 			BasicDBObject match = new BasicDBObject();
-			match.append("type", 3).append("org_id", new BasicDBObject("$ne", 4)).append("status", 1)
-			.append("code", "S3_06");
+			match.append("type", 3).append("user_type", new BasicDBObject("$gt", 0)).append("status", 1)
+				 .append("code", "S3_06");
+			
+			List<String> account = new ArrayList<String>();
+			account.add("E00035582");
+			account.add("E00007934");
+			account.add("E00007936");
+			account.add("E00020126");
+			account.add("E00021255");
+			
+			Document doc = new Document();
+			doc.append("nick_name", new Document("$in", account));
+			List<Long> accountList = new ArrayList<>();
+			FindIterable<Document> filter = accountrelation.find(doc).projection(new Document("account_id", 1).append("full_name", 1));
+			MongoCursor<Document> iterator = filter.iterator();
+			Map<Long, String> map = new HashMap<>();
+			while(iterator.hasNext()){
+				Document o = iterator.next();
+				Long accountId = o.getLong("account_id");
+				map.put(accountId, o.getString("full_name"));
+				accountList.add(accountId);
+			}
+			accountList.add(394565L);
+			
+			match.append("account_name", new BasicDBObject("$in", account));
+			
 			BasicDBObject timeQuery = new BasicDBObject();
-			timeQuery.append("$gte", DateUtil.stringToDate("2016-08-05", "yyyy-MM-dd"));
+			timeQuery.append("$gte", DateUtil.stringToDate("2017-01-01", "yyyy-MM-dd"));
 			match.append("date", timeQuery);
 			
 			BasicDBObject group = new BasicDBObject();
-			group.append("_id", "$account_id").append("date_list", new BasicDBObject("$addToSet", "$date"));
+			group.append("_id", "$account_name").append("count", new BasicDBObject("$sum", 1));
 			
 			List<BasicDBObject> piList = new ArrayList<>();
-			piList.add(new BasicDBObject("$sort", sort));
+//			piList.add(new BasicDBObject("$sort", sort));
 			piList.add(new BasicDBObject("$match", match));
 			piList.add(new BasicDBObject("$group", group));
 			
 			AggregateIterable<Document> iterable = useropRecord.aggregate(piList);
 			MongoCursor<Document> cursor = iterable.iterator();
-			Map<String, Integer> result = new HashMap<String, Integer>();
-			Map<String, List<String>> resultAcc = new HashMap<String, List<String>>();
 			
+			XSSFWorkbook workbook = new XSSFWorkbook();
+			XSSFSheet sheet = workbook.createSheet("登录次数");
+			XSSFRow row = sheet.createRow(0);
+			XSSFCell cell = row.createCell(0);
+			cell.setCellValue("账号");
+			cell = row.createCell(1);
+			cell.setCellValue("名称");
+			cell = row.createCell(2);
+			cell.setCellValue("次数");
+			int rowUserop=1;
 			while(cursor.hasNext()){
 				Document o = cursor.next();
-				Long accountId = o.getLong("_id");
-				List dateList = o.get("date_list", List.class);
-				if(dateList.size() < 4){
-					continue;
-				}
+				String accountId = o.getString("_id");
+				int count = o.getInteger("count");
 				
-				fourWeek(dateList, result, resultAcc, accountId);
+				row = sheet.createRow(rowUserop);
+				cell = row.createCell(0);
+				cell.setCellValue(accountId);
 				
+				cell = row.createCell(1);
+				cell.setCellValue(map.get(accountId));
 				
+				cell = row.createCell(2);
+				cell.setCellValue(count);
+				rowUserop++;
 			}
 			cursor.close();
 			
-			System.out.println(result);
-//			System.out.println(resultAcc);
+			long time = System.currentTimeMillis();
+			String fileName = "登录次数"+time+".xlsx";
+			
+			FileOutputStream out = new FileOutputStream(new File("C:\\Users\\yutao\\Desktop\\"+fileName));
+			workbook.write(out);
+			workbook.close();
 			
 		}catch (Exception e) {
 			e.printStackTrace();

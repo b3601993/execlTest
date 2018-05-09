@@ -1,4 +1,12 @@
 package test;
+
+import java.math.BigDecimal;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
 public class regexTest {
 
 	public static void main(String[] args) {
@@ -21,6 +29,49 @@ public class regexTest {
 		byte a = -9;
 		System.out.println(Integer.toHexString(a));
 		
+		
+		Pattern app = Pattern.compile("-?[0-9]+(\\.[0-9]+)?");
+		
+		
+        double taa = -19162431.1254;
+        String ta = "-19162431.1254";
+        String b = "-19162431a1254";
+        String c = "中文";
+        String ct="-00.";
+        String cy = "1";
+        String cyc = "1.1";
+		System.out.println(isNumericzidai(Double.toString(taa)));
+		System.out.println(isNumericzidai(ta));
+		System.out.println(isNumericzidai(b));
+		System.out.println(isNumericzidai(c));
+		System.out.println(isNumericzidai(ct));
+		System.out.println(isNumericzidai(cy));
+		System.out.println(isNumericzidai(cyc));
+		
+		System.out.println(StringUtils.isNumeric("19162431.14"));
+		System.out.println("=======");
+		System.out.println(NumberUtils.isNumber(ta));
+		System.out.println(NumberUtils.isNumber(b));
+		System.out.println(NumberUtils.isNumber(c));
+		System.out.println(NumberUtils.isNumber("-00."));
+		System.out.println(NumberUtils.isNumber(cy));
+		System.out.println(NumberUtils.isNumber(cyc));
 	}
+	
+	public static boolean isNumericzidai(String str) {
+		// 该正则表达式可以匹配所有的数字 包括负数
+		Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
+		String bigStr;
+		try {
+			bigStr = new BigDecimal(str).toString();
+		} catch (Exception e) {
+			return false;//异常 说明包含非数字。
+		}
 
+		Matcher isNum = pattern.matcher(bigStr); // matcher是全匹配
+		if (!isNum.matches()) {
+			return false;
+		}
+		return true;
+	}
 }

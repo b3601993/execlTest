@@ -29,7 +29,10 @@ public class BigDecimalTest {
 		}*/
 		
 		String aa = "10000.00";
-		System.out.println(new BigDecimal(aa));
+//		System.out.println(new BigDecimal(aa));
+		
+		String bigStr = new BigDecimal("-0.12123").toString();
+		System.out.println(bigStr);
 		
 //		System.out.println(validDivi(d1, 10000, 2));
 		
@@ -49,6 +52,11 @@ public class BigDecimalTest {
 		validDivi2(d15);
 		validDivi2(d16);
 		validDivi2(d17);*/
+		
+		Double ta = null;
+		if(ta != null && ta > 0){
+			System.out.println("不报错");
+		}
 	}
 	
 	
