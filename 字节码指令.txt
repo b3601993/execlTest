@@ -1,0 +1,38 @@
+[0:undefined, 1:undefined,2:undefined | "bb"] --- ldc
+
+[0:undefined, 1:"bb",2:undefined | ] --- astore_1   String result="bb"
+
+[0:undefined, 1:"bb",2:undefined | 0] --- iconst_0
+
+[0:undefined, 1:"bb",2:0 | ] --- istore_2
+
+[0:undefined, 1:"bb",2:0 | ] --- goto
+
+[0:undefined, 1:"bb",2:0 | StringBuilder] --- new 创建一个StringBuiler对象
+
+[0:undefined, 1:"bb",2:0 | StringBuilder, StringBuilder] --- dup 复制栈顶元素，并压入栈顶
+
+[0:undefined, 1:"bb",2:0 | StringBuilder, new StringBuilder(), result]   --- aload_1 将局部第一个（slot）引用型变量压入栈顶
+
+[0:undefined, 1:"bb",2:0 | StringBuilder, StringBuilder]  ---  invokestatic "bb".valueOf()
+
+[0:undefined, 1:"bb",2:0 | StringBuilder] --- invokespecial 构造器 调用 StringBuilder的构造方法
+
+[0:undefined, 1:"bb",2:0 | StringBuilder, "a"] --- ldc 
+
+[0:undefined, 1:"bb",2:0 | StringBuilder, StringBuilder] --- invokestatic 弹出两个元素 new StringBuilder().append(result)
+
+[0:undefined, 1:"bb",2:0 | StringBuilder, "a"] --- invokevirtual 将字符串"a"加载进栈
+
+[0:undefined, 1:"bba",2:0 | StringBuilder] --- astore_1 将StringBuilder, "a"弹出栈，执行
+
+[0:undefined, 1:"bba",2:1 | StringBuilder] --- iinc 2,1我理解为 第二个局部变量加1
+
+[0:undefined, 1:"bba",2:1 | StringBuilder, 1] --- iload_2 第三个int型局部变量进栈
+
+[0:undefined, 1:"bba",2:1 | StringBuilder, 1，20] --- bipush 数字20进栈
+
+[0:undefined, 1:"bba",2:1 | StringBuilder] --- if_icmplt 从栈中弹出两个int型数字（1，20），如果第一个小于第二个，则跳转。
+
+
+[0:undefined, 1:"bba",2:1 | StringBuilder]
