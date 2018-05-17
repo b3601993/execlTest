@@ -4,7 +4,7 @@
 
 [0:undefined, 1:"bb",2:undefined | 0] --- iconst_0
 
-[0:undefined, 1:"bb",2:0 | ] --- istore_2
+[0:undefined, 1:"bb",2:0 | ] --- istore_2 将常量0赋值，赋值给int型的slot2变量
 
 [0:undefined, 1:"bb",2:0 | ] --- goto
 
@@ -12,15 +12,15 @@
 
 [0:undefined, 1:"bb",2:0 | StringBuilder, StringBuilder] --- dup 复制栈顶元素，并压入栈顶
 
-[0:undefined, 1:"bb",2:0 | StringBuilder, new StringBuilder(), result]   --- aload_1 将局部第一个（slot）引用型变量压入栈顶
+[0:undefined, 1:"bb",2:0 | StringBuilder, new StringBuilder(), "bb"]   --- aload_1 将局部slot1的引用型变量压入栈顶
 
-[0:undefined, 1:"bb",2:0 | StringBuilder, StringBuilder]  ---  invokestatic "bb".valueOf()
+[0:undefined, 1:"bb",2:0 | StringBuilder, StringBuilder]  ---  invokestatic 弹出"bb",调用String.valueOf("bb") 返回字符串
 
-[0:undefined, 1:"bb",2:0 | StringBuilder] --- invokespecial 构造器 调用 StringBuilder的构造方法
+[0:undefined, 1:"bb",2:0 | StringBuilder] --- invokespecial  弹出StringBuilder，作为this的参数传给StringBuilder构造器
 
-[0:undefined, 1:"bb",2:0 | StringBuilder, "a"] --- ldc 
+[0:undefined, 1:"bb",2:0 | StringBuilder, "a"] --- ldc 加载常量a
 
-[0:undefined, 1:"bb",2:0 | StringBuilder, StringBuilder] --- invokestatic 弹出两个元素 new StringBuilder().append(result)
+[0:undefined, 1:"bb",2:0 | StringBuilder] --- invokestatic 弹出两个元素（"a"） new StringBuilder().append(result)
 
 [0:undefined, 1:"bb",2:0 | StringBuilder, "a"] --- invokevirtual 将字符串"a"加载进栈
 

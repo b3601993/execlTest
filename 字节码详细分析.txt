@@ -1,0 +1,49 @@
+[0:udf, 1:udf, 2:udf | "bb"]  --- ldc  加载 字符串 "bb"
+[0:udf, 1:"bb", 2:udf | ] --- astore_1 将栈顶元素"bb"弹出，赋值给slot为1的变量
+[0:udf, 1:"bb", 2:udf | 0] --- iconst_0 加载int型常量 0
+[0:udf, 1:"bb", 2:0 | ] --- istore_2 将栈顶元素2弹出，赋值给slot为2的变量
+
+goto  31
+
+[0:udf, 1:"bb", 2:0 | "StringBuilder"] --- new 创建一个StringBuilder对象
+
+[0:udf, 1:"bb", 2:0 | "StringBuilder"， "StringBuilder"] --- dup 赋值栈顶元素，并入栈
+
+[0:udf, 1:"bb", 2:0 | "StringBuilder"， "StringBuilder", "bb"] --- aload_1 将slot为1的值复制到栈顶
+
+[0:udf, 1:"bb", 2:0 | "StringBuilder"， "StringBuilder", "bb"] --- invokestatic String.valueOf("bb")
+
+    [0:udf, 1:"bb", 2:0 | "StringBuilder"， "StringBuilder", "bb"] --- invokespecial 调用类的构造器 弹出栈顶两个元素初始化
+    [0:udf, 1:"bb", 2:0 | "StringBuilder"]
+
+[0:udf, 1:"bb", 2:0 | "StringBuilder", "a"] --- ldc 加载常量"a"
+[0:udf, 1:"bb", 2:0 | "StringBuilder", "a"] --- invokevirtual 调用append("a")方法，拼接成 "bba"
+    [0:udf, 1:"bb", 2:0 | ] --- 弹出 "StringBuilder", "a"  调用append("a")方法，拼接成 "bba"
+    [0:udf, 1:"bb", 2:0 | "StringBuilder"] 因为有返回值，所以这个值会重新进栈
+
+[0:udf, 1:"bb", 2:0 | "StringBuilder"] --- invokevirtual 根据方法toString()可知，弹出栈顶元素 进行toString()的操作
+    [0:udf, 1:"bb", 2:0 | "String"] --- "StringBuilder".toString(); 返回的String，该值("bba")要重新入栈
+
+[0:udf, 1:"bb", 2:0 | "String"] --- astore_1 将栈顶元素弹出赋值给slot为1的变量
+    [0:udf, 1:"bba", 2:0 | ] 
+
+[0:udf, 1:"bba", 2:0 | ] --- iinc   slot为2的，加1
+    [0:udf, 1:"bba", 2:1 | ]
+
+[0:udf, 1:"bba", 2:1 | ] --- iload_2 加载slot为2的值复制到栈顶
+    [0:udf, 1:"bba", 2:1 | 1]
+
+[0:udf, 1:"bba", 2:1 | 1] --- bipush 将字节常量20压入栈顶
+    [0:udf, 1:"bba", 2:1 | 1，20]
+
+[0:udf, 1:"bba", 2:1 | 1，20] --- if_icmplt 弹出栈顶两个元素 进行比较，如果为真，就跳转8
+    [0:udf, 1:"bba", 2:1 | ]
+
+[0:udf, 1:"bba", 2:1 | ] --- getstatic 加载字段System.out，其是PrintStream
+    [0:udf, 1:"bba", 2:1 | "PrintStream"]
+[0:udf, 1:"bba", 2:1 | "PrintStream"] --- aload_1 将slot为1的变量的值复制并压入栈顶
+    [0:udf, 1:"bba", 2:1 | "PrintStream", "bba"]
+
+[0:udf, 1:"bba", 2:1 | "PrintStream", "bba"] --- invokevirtual 根据方法可知，弹出栈顶两个元素，并执行PrintStream.println
+    [0:udf, 1:"bba", 2:1 | ] --- System.out.println("bba")
+return
