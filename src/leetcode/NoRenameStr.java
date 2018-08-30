@@ -28,7 +28,9 @@ public class NoRenameStr {
 		
 		
 		for(int i=0; i<length; i++){
-			
+			for(int j=i+1; j<length-1; j++){
+				
+			}
 		}
 	}
 }
