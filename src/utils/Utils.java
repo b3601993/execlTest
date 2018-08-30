@@ -1,6 +1,10 @@
 package utils;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -142,4 +146,57 @@ public class Utils {
 		return keyWord;
 	}
     
+	/**
+	 * 得到用&好拼接后的URL
+	 * 
+	 * @param params
+	 * @param incomingParams
+	 * @return
+	 * @author yutao
+	 * @date 2018年1月9日下午5:31:28
+	 */
+	public static String getUrlStr(Map<String, String> params) {
+		String incomingParams = "";
+		if (params != null && !params.isEmpty()) {
+			try {
+				for (String s : params.keySet()) {
+					incomingParams = incomingParams + s + "=" + URLEncoder.encode((String) params.get(s), "UTF-8") + "&";
+				}
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+			incomingParams = incomingParams.substring(0, incomingParams.length() - 1);
+		}
+//		String paramsStr = JSON.toJSONString(params);
+//		incomingParams = paramsStr.replaceAll("[{}\"]", "").replaceAll(":", "=").replaceAll(",", "&");
+		return incomingParams;
+	}
+	
+	/**
+	 * 将参数反向解析成map形式
+	 * @param paramStr
+	 * @return
+	 * @author yutao
+	 * @date 2018年1月12日下午4:01:23
+	 */
+	public static LinkedHashMap<String, String> getParamMap(String paramStr){
+		
+		LinkedHashMap<String, String> params = new LinkedHashMap<>();
+		if(StringUtils.isNotBlank(paramStr)){
+			String[] split = paramStr.split("&");
+			for(String s : split){
+				String[] ss = s.split("=");
+				try {
+					if(ss.length == 2){
+						params.put(ss[0], URLDecoder.decode(ss[1], "UTF-8"));
+					}else{
+						params.put(ss[0], "");
+					}
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return params;
+	}
 }

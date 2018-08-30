@@ -225,6 +225,28 @@ public class DateUtil {
 
     /**
      * 获得指定日期的最后一天
+     * @param date
+     * @return
+     * @author yutao
+     * @date 2018年6月6日下午4:11:58
+     */
+	public static Date getLastDayOfMonth(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+//		calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 000);
+		calendar.add(Calendar.MONTH, 1);
+		
+		calendar.add(Calendar.DATE, -1);
+		return calendar.getTime();
+	}
+    
+    /**
+     * 获得指定日期的最后一天
      *
      * @param date
      * @return

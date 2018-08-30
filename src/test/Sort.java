@@ -13,15 +13,119 @@ public class Sort {
 	public static void main(String[] args) {
 //		List<Integer> mm = mm();
 //		System.out.println(mm);
-		
-		Map<String, Object> mm = new HashMap<>();
-		mm.put("code", "BK0158");
-		
-		Map<String, Map<String, Object>> pp = new HashMap<>();
-		pp.put("BK0158", new HashMap<String, Object>(){{put("a", 1);}});
-		
-		System.out.println(pp.get(mm.get("code")));
+		binarySort();
 	}
+	
+	/**
+	 * 二分查找 符合要求的个数
+	 * 
+	 * @author yutao
+	 * @date 2018年6月7日下午1:37:53
+	 */
+	public static void binarySort(){
+		List<Map<String, Object>> stockCodeList = new ArrayList<Map<String, Object>>(){{
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 1);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 1);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+			add(new HashMap<String, Object>(){{
+				put("ner_month", 0);
+			}});
+		}};
+		
+		int left = 0;
+		int size = stockCodeList.size();
+		int right = size;
+		while(left < right){
+			int mid = (left + right) >>> 1;
+			Map<String, Object> midMap = stockCodeList.get(mid);
+			if((int)midMap.get("ner_month") == 1){
+				left = mid + 1;
+			}else{
+				right = mid;
+			}
+		}
+		if(left == right){
+			System.out.println(left);
+		}
+	}
+	
+	private static List<Map<String, Object>> stockCodeList = new ArrayList<Map<String, Object>>(){{
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 1);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 1);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+		add(new HashMap<String, Object>(){{
+			put("ner_month", 0);
+		}});
+	}};
+	
+	public static void binarySortM(List<Map<String, Object>> result){
+
+		
+		int left = 0;
+		int size = stockCodeList.size();
+		int right = size;
+		while(left < right){
+			int mid = (left + right) >>> 1;
+			Map<String, Object> midMap = stockCodeList.get(mid);
+			if((int)midMap.get("ner_month") == 1){
+				left = mid + 1;
+			}else{
+				right = mid;
+			}
+		}
+		if(left == right){
+			System.out.println(left);
+		}
+	}
+	
 	
 	public static List<Integer> mm(){
 		
