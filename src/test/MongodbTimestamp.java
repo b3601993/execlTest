@@ -43,15 +43,16 @@ public class MongodbTimestamp {
 		
 		
 		Document match = new Document();
-		List<Long> ll = new ArrayList<Long>();
+		/*List<Long> ll = new ArrayList<Long>();
 		ll.add(1549370L);
-		ll.add(1549371L);
+		ll.add(1549371L);*/
 //		match.append("_id", new Document("$in", ll));
 		match.append("_tm", null);
 		
-		Date stringToDate = DateUtil.stringToDate("2018-04-01", "yyyy-MM-dd");
+		Date stringToDate = DateUtil.stringToDate("2016-08-05", "yyyy-MM-dd");
 		match.append("date", new Document("$gte", stringToDate));
-		useropRecord.find(match).forEach(new Block<Document>() {
+		match.append("code", "S3_06");
+		useropRecord.find(match).batchSize(10000).forEach(new Block<Document>() {
 			int aa=3000;
 			@Override
 			public void apply(Document doc) {

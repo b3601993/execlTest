@@ -35,7 +35,7 @@ public class Click4Execl {
 		MongoCollection<Document> useropRecord = null;
 		try {
 			//连接数据库 start
-			MongoCredential credential = MongoCredential.createCredential("gg_user_db_rw", "gg_user_db", "gg_user_db_rw.gogoal.com".toCharArray());
+			MongoCredential credential = MongoCredential.createCredential("api_rw_accb", "ft_account_behavior", "api_rw_accb@suntime.8908!".toCharArray());
 			ServerAddress serverAddress;
 			serverAddress = new ServerAddress("106.75.51.20", 35724);
 			List<ServerAddress> addrs = new ArrayList<ServerAddress>();
@@ -47,11 +47,11 @@ public class Click4Execl {
 			System.out.println("Connect to database successfully");
 			//连接数据库 end
 			
-			database = mongoClient.getDatabase("gg_user_db");
-			useropRecord = database.getCollection("userop_record");//埋点表
+			database = mongoClient.getDatabase("ft_account_behavior");
+			useropRecord = database.getCollection("cabs_userop_record");//埋点表
 			
-			Date startDate = DateUtil.stringToDate("2018-07-01", "yyyy-MM-dd");
-			Date endDate = DateUtil.stringToDate("2018-08-01", "yyyy-MM-dd");
+			Date startDate = DateUtil.stringToDate("2019-01-01", "yyyy-MM-dd");
+			Date endDate = DateUtil.stringToDate("2019-02-01", "yyyy-MM-dd");
 			
 			List<String> codeList = new ArrayList<>();
 			
@@ -94,30 +94,15 @@ public class Click4Execl {
 			codeList.add("G4_a06_03");
 			//帮助
 			codeList.add("G4_a05");
-			
-			//推荐工具栏
-			/*codeList.add("G4_c01");
-			codeList.add("G4_c02");
-			codeList.add("G4_c03");
-			codeList.add("G4_c04");
-			codeList.add("G4_c05");
-			codeList.add("G4_c06");
-			codeList.add("G4_c07");
-			codeList.add("G4_c08");
-			codeList.add("G4_c09");
-			codeList.add("G4_c10");
-			//主题热点
-			codeList.add("G4_c11");
-			//直播
-			codeList.add("G4_c13");*/
+			//机器人
+			codeList.add("G4_03");
 			
 			//获取指定区间内付费用户数
-			QuanxianCommon.setDatabase(database);
+//			QuanxianCommon.setDatabase(database);
 			Map<Date, Map<String, Set<Long>>> payUserAccountIds = QuanxianExecl.getPayUserAccountIds(startDate, endDate, "901");
-//			Map<Date, Map<String, Set<Long>>> payUserAccountIds = QuanxianExecl.getPayUserAccountIds(startDate, endDate, "103");
 			
 			//获取权限用户
-			Set<Long> allUserSet = getQuan();
+			Set<Long> allUserSet = QuanxianCommon.getQuan();
 			
 			Map<String, Set<Long>> validMap = payUserAccountIds.get(startDate);
 			//累计付费用户数
@@ -197,7 +182,15 @@ public class Click4Execl {
 			ccSet.removeAll(schoolList);
 			while(cursor.hasNext()){
 				Document o = cursor.next();
-//				allI++;
+				String userName = o.getString("user_name");
+				String orgName = o.getString("org_name");
+				if(userName != null && userName.contains("测试")){
+					continue;
+				}
+				if(orgName != null && orgName.contains("朝阳永续")){
+					continue;
+				}
+				
 				Long accountId = o.getLong("account_id");
 				String code = o.getString("code");
 				if(newsList.contains(code)){
@@ -217,7 +210,6 @@ public class Click4Execl {
 				
 				//付费用户的点击次数和点击人次
 				if(paySet.contains(accountId)){
-//					payI++;
 					
 					Integer payCount = payclickCount.get(code);
 					if(payCount == null){
@@ -228,7 +220,6 @@ public class Click4Execl {
 					}
 					
 					if(payCount >= 2){
-//						payTwoAccSet.add(accountId);
 						Set<Long> twoSet = payTwoAccMap.get(code);
 						if(twoSet == null){
 							twoSet = new HashSet<>();
@@ -239,7 +230,6 @@ public class Click4Execl {
 						}
 					}
 					if(payCount >= 5){
-//						payFiveAccSet.add(accountId);
 						Set<Long> fiveSet = payFiveAccMap.get(code);
 						if(fiveSet == null){
 							fiveSet = new HashSet<>();
@@ -250,7 +240,6 @@ public class Click4Execl {
 						}
 					}
 					if(payCount >= 10){
-//						payTenAccSet.add(accountId);
 						Set<Long> tenSet = payTenAccMap.get(code);
 						if(tenSet == null){
 							tenSet = new HashSet<>();
@@ -260,7 +249,6 @@ public class Click4Execl {
 							tenSet.add(accountId);
 						}
 					}
-//					payAccSet.add(accountId);
 					
 					Set<Long> pSet = payAccMap.get(code);
 					if(pSet == null){
@@ -272,7 +260,6 @@ public class Click4Execl {
 					}
 					
 				}else if(trySet.contains(accountId)){
-//					tryI++;
 					
 					Integer tryCount = tryclickCount.get(code);
 					if(tryCount == null){
@@ -283,7 +270,6 @@ public class Click4Execl {
 					}
 					
 					if(tryCount >= 2){
-//						tryTwoAccSet.add(accountId);
 						
 						Set<Long> twoSet = tryTwoAccMap.get(code);
 						if(twoSet == null){
@@ -295,7 +281,6 @@ public class Click4Execl {
 						}
 					}
 					if(tryCount >= 5){
-//						tryFiveAccSet.add(accountId);
 						
 						Set<Long> fiveSet = tryFiveAccMap.get(code);
 						if(fiveSet == null){
@@ -307,7 +292,6 @@ public class Click4Execl {
 						}
 					}
 					if(tryCount >= 10){
-//						tryTenAccSet.add(accountId);
 						
 						Set<Long> tenSet = tryTenAccMap.get(code);
 						if(tenSet == null){
@@ -318,7 +302,6 @@ public class Click4Execl {
 							tenSet.add(accountId);
 						}
 					}
-//					tryAccSet.add(accountId);
 					
 					Set<Long> tSet = tryAccMap.get(code);
 					if(tSet == null){
@@ -332,8 +315,6 @@ public class Click4Execl {
 				   !sjddSet.contains(accountId) && !vipSet.contains(accountId) && 
 				   !trySet.contains(accountId) && allUserSet.contains(accountId)){
 					
-//					expireI++;
-					
 					Integer expireCount = expireclickCount.get(code);
 					if(expireCount == null){
 						expireCount=1;
@@ -343,7 +324,6 @@ public class Click4Execl {
 					}
 					
 					if(expireCount >= 2){
-//						expireTwoAccSet.add(accountId);
 						Set<Long> twoSet = expireTwoAccMap.get(code);
 						if(twoSet == null){
 							twoSet = new HashSet<>();
@@ -354,7 +334,6 @@ public class Click4Execl {
 						}
 					}
 					if(expireCount >= 5){
-//						expireFiveAccSet.add(accountId);
 						
 						Set<Long> fiveSet = expireFiveAccMap.get(code);
 						if(fiveSet == null){
@@ -366,7 +345,6 @@ public class Click4Execl {
 						}
 					}
 					if(expireCount >= 10){
-//						expireTenAccSet.add(accountId);
 						Set<Long> tenSet = expireTenAccMap.get(code);
 						if(tenSet == null){
 							tenSet = new HashSet<>();
@@ -376,7 +354,6 @@ public class Click4Execl {
 							tenSet.add(accountId);
 						}
 					}
-//					expireAccSet.add(accountId);
 					
 					Set<Long> tSet = expireAccMap.get(code);
 					if(tSet == null){
@@ -436,7 +413,7 @@ public class Click4Execl {
 			titleList.add("试用用户点击率");
 			titleList.add("过期用户点击率");
 			
-			titleList.add("付费用户 2次");
+			/*titleList.add("付费用户 2次");
 			titleList.add("付费用户 5次");
 			titleList.add("付费用户 10次");
 			
@@ -446,11 +423,10 @@ public class Click4Execl {
 			
 			titleList.add("过期用户 2次");
 			titleList.add("过期用户 5次");
-			titleList.add("过期用户 10次");
+			titleList.add("过期用户 10次");*/
 			
 			String fileName = "终端4.0 点击次数";
 			
-//			LinkedHashMap<String,String> initClickMap = QuanxianCommon.initClickMap();
 			LinkedHashMap<String,String> initClickMap = QuanxianCommon.initClick4Map();
 			
 			List<LinkedHashMap<String,Object>> queryList = new ArrayList<>();
@@ -473,7 +449,7 @@ public class Click4Execl {
 				lMap.put("tryClickRate", allInt==null?0:ToolsUtil.diviValidOrFraction(tryclickCount.get(code)==null?0:tryclickCount.get(code), allInt, 2));
 				lMap.put("expireClickRate", allInt==null?0:ToolsUtil.diviValidOrFraction(expireclickCount.get(code)==null?0:expireclickCount.get(code), allInt, 2));
 				
-				lMap.put("payTwo", payTwoAccMap.get(code)==null ? 0:payTwoAccMap.get(code).size());
+				/*lMap.put("payTwo", payTwoAccMap.get(code)==null ? 0:payTwoAccMap.get(code).size());
 				lMap.put("payFive", payFiveAccMap.get(code)==null ? 0:payFiveAccMap.get(code).size());
 				lMap.put("payTen", payTenAccMap.get(code)==null ? 0:payTenAccMap.get(code).size());
 				
@@ -483,7 +459,7 @@ public class Click4Execl {
 				
 				lMap.put("expireTwo", expireTwoAccMap.get(code)==null ? 0:expireTwoAccMap.get(code).size());
 				lMap.put("expireFive", expireFiveAccMap.get(code)==null ? 0:expireFiveAccMap.get(code).size());
-				lMap.put("expireTen", expireTenAccMap.get(code)==null ? 0:expireTenAccMap.get(code).size());
+				lMap.put("expireTen", expireTenAccMap.get(code)==null ? 0:expireTenAccMap.get(code).size());*/
 				
 				queryList.add(lMap);
 			}
@@ -533,7 +509,7 @@ public class Click4Execl {
 			lMap.put("alltryClickRate", allSum==0?0:ToolsUtil.diviValidOrFraction(tryCInt, allSum, 2));
 			lMap.put("allexpireClickRate", allSum==0?0:ToolsUtil.diviValidOrFraction(expireCInt, allSum, 2));
 			
-			Collection<Set<Long>> payTwoSet = payTwoAccMap.values();
+			/*Collection<Set<Long>> payTwoSet = payTwoAccMap.values();
 			Set<Long> payTw = new HashSet<>();
 			payTwoSet.forEach(s -> {payTw.addAll(s);});
 			lMap.put("allpayTwo", payTw.size());
@@ -564,7 +540,7 @@ public class Click4Execl {
 			lMap.put("allexpireFive", expireFi.size());
 			Set<Long> expireTe = new HashSet<>();
 			expireTenAccMap.values().forEach(s -> {expireTe.addAll(s);});
-			lMap.put("allexpireTen", expireTe.size());
+			lMap.put("allexpireTen", expireTe.size());*/
 			queryList.add(lMap);
 			QuanxianExecl.export(fileName, titleList, queryList);
 		}catch (Exception e) {
@@ -610,29 +586,6 @@ public class Click4Execl {
 		result.put("uv", accountIdSet);
 		
 		return result;
-	}
-	
-	/**
-	 * 获取所有的有过订单的用户
-	 * @param startDate
-	 * @param endDate
-	 * @author yutao
-	 * @return 
-	 * @date 2018年7月16日上午10:16:05
-	 */
-	private static Set<Long> getQuan(){
-		
-		MongoCollection<Document> thirdSpmsOrder = database.getCollection("v_third_spms_order_buy_list");
-		
-		Iterable<Integer> distinctIterable = thirdSpmsOrder.distinct("user_id", Integer.class);
-		
-		Set<Long> allAccountIdSet = new HashSet<>();
-		Iterator<Integer> iterator = distinctIterable.iterator();
-		while(iterator.hasNext()){
-			Integer o = iterator.next();
-			allAccountIdSet.add(Long.valueOf(o));
-		}
-		return allAccountIdSet;
 	}
 	
 	/**

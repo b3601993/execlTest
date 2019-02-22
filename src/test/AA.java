@@ -3,324 +3,77 @@ package test;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class AA {
 
 	
 	public static void main(String[] args) {
-		int[] a = {2
-,3
-,5
-,7
-,8
-,9
-,10
-,12
-,13
-,14
-,19
-,20
-,22
-,24
-,26
-,28
-,30
-,38
-,41
-,59
-,61
-,67
-,77
-,107
-,109
-,116
-,118
-,119
-,122
-,123
-,125
-,133
-,136
-,138
-,153
-,193
-,217
-,219
-,232
-,696
-,1183
-,1284
-,2444
-,2482
-,2570
-,2983
-,7104
-,7602
-,8763
-,10520
-,15467
-};
-		int [] bb = {118
-,26
-,22
-,3
-,2570
-,8
-,119
-,2570
-,7273
-,26
-,126
-,7104
-,38
-,2570
-,8
-,59
-,3
-,20
-,118
-,9
-,138
-,61
-,2983
-,2570
-,8
-,122
-,77
-,22
-,123
-,7
-,61
-,7
-,126
-,160
-,2983
-,13
-,47336
-,2570
-,2482
-,193
-,22
-,2482
-,55141
-,160
-,123
-,138
-,31
-,14
-,2570
-,61
-,26
-,26
-,9
-,26
-,7104
-,55141
-,50110
-,7104
-,2570
-,579
-,2482
-,153
-,2570
-,15467
-,3
-,15467
-,24
-,10
-,41984
-,13
-,228
-,19
-,122
-,13
-,14
-,61
-,15467
-,696
-,22
-,126
-,2983
-,13
-,12
-,126
-,26
-,7
-,5
-,38
-,67
-,38
-,54558
-,138
-,118
-,15467
-,2
-,2
-,24
-,10520
-,10520
-,13
-,9
-,31
-,1284
-,22
-,9
-,12629
-,125
-,26
-,125
-,10032
-,2
-,41
-,125
-,26
-,3
-,15467
-,122
-,22
-,15467
-,1284
-,2
-,217
-,2570
-,219
-,61
-,217
-,8170
-,19
-,12
-,2
-,123
-,122
-,61
-,3
-,118
-,19
-,61
-,20
-,9
-,128
-,89
-,9
-,2983
-,119
-,13
-,123
-,5
-,3
-,1183
-,2
-,13
-,2
-,15467
-,15467
-,38
-,109
-,9
-,13
-,125
-,2983
-,3
-,1284
-,2
-,22
-,3
-,78
-,2570
-,9
-,7104
-,200
-,3
-,125
-,216
-,8349
-,119
-,123
-,2570
-,61
-,38
-,232
-,133
-,15467
-,2
-,20
-,119
-,30
-,9
-,1565
-,136
-,2983
-,26
-,15467
-,13
-,2570
-,7
-,109
-,13
-,2485
-,5
-,1284
-,12
-,3
-,22
-,22
-,30
-,61
-,26
-,2570
-,12629
-,7
-,119
-,136
-,123
-,61
-,15467
-,123
-,219
-,3
-,50111
-,26
-,193
-,61
-,7104
-,2570
-,15467
-,2983
-,30
-,2
-,10875
-,2570
-,77
-,122
-,8349
-,3
-,2
-,219
-,2
-,125
-,8
-,13
-,7602
-,9
-,24
-,125
-,3
-,66
-,13
-};
-		List<Integer> orgidList = new ArrayList<>();
-		for(int aa=0, aasize= a.length; aa<aasize; aa++){
-			orgidList.add(a[aa]);
+		
+		List<Map<String, Object>> result = new ArrayList<>();
+		
+//		result = result.subList(0, 100);
+//		System.out.println(result);
+		
+		
+		Set<String> ss = new HashSet<>();
+		System.out.println(ss);
+		System.out.println(ss.contains(null));
+		
+		//<p>1、目前看反弹低预期，而A股下一次反弹的窗口可能要等2019年2-3月（新时代证券）<a href=\\\"#1\\\" target=\\\"_self\\\">#1</a></p><p>
+//		String content = "<p>1、目前看反弹低预期，而A股下一次反弹的窗口可能要等2019年2-3月（新时代证券）<a href=\\\"#1\\\" target=\\\"_self\\\">#1</a></p><p>2、干货解读！读透中央经济工作会议，深挖哪些超预期的投资机会（长江证券）<a href=\\\"#2\\\" target=\\\"_self\\\">#2</a></p><p>3、新能源汽车销售火爆下，看好下游六氟磷酸锂（招商证券）<a href=\\\"#3\\\" target=\\\"_self\\\">#3</a></p><p>4、天孚通信：公司进入新一轮成长周期，布局5G优质成长企业（招商证券）<a href=\\\"#4\\\" target=\\\"_self\\\">#4</a></p><p>5、动力电池回收产业“春色欲来”，政府出政策企业忙布局（朝阳财经研究院）<a href=\\\"#5\\\" target=\\\"_self\\\">#5</a></p><p></p><br/>";
+		String content = "2、干货解读！读透中央经济工作会议，深挖哪些超预期的投资机会";
+		System.out.println(content);
+		content = content.replaceAll("<p>", "");
+		content = content.replaceAll("</p>", "<br/>");
+//		content = content.replaceAll("<br/>", "");
+		
+//		Pattern pattern = Pattern.compile("((.*?)(<a.*?>.*?</a>)?)?((.*?)<a.*?>.*?</a>)?((.*?)<a.*?>.*?</a>)?((.*?)<a.*?>.*?</a>)?((.*?)<a.*?>.*?</a>)?");
+		Pattern pattern = Pattern.compile("<a[^<]*?>#.{1}</a>");
+		
+		Matcher matcher2 = pattern.matcher(content);
+		
+		String replaceAll = matcher2.replaceAll("");
+		System.out.println(replaceAll);
+//		replaceAll = replaceAll.replaceAll("</a>", "");
+//		System.out.println(replaceAll.replaceAll("", "")/*.replaceAll("(^1\\d、)", "<br/>$1")*/);
+		String str  = "";
+		String[] split = replaceAll.split("<br/>");
+		int length = split.length;
+		for(int i =0; i<length; i++) {
+			if (i == length-1) {
+				str += split[i] ;
+			}else {
+				str += split[i]+ "<br/>";
+			}
 		}
+		System.out.println(str);
 		
-		List<Integer> guidList = new ArrayList<>();
-		for(int i=0, size = bb.length; i< size; i++){
-			guidList.add(bb[i]);
+		
+/*		Matcher matcher = pattern.matcher(content);
+		if (matcher.matches()) {
+			for(int i=1;i<=matcher.groupCount();i++){
+				
+				String group = matcher.group(i);
+				if (group == null) {
+					continue;
+				}
+				if(!group.contains("href")) {
+					if(StringUtils.isBlank(str)) {
+						str += group;
+					}else {
+						str += "<br/>" + group;
+					}
+					
+				}
+				System.out.println("group "+i+":"+matcher.group(i));
+			}
 		}
-		
-		guidList.removeAll(orgidList);
-		HashSet<Integer> hashSet = new HashSet<Integer>(guidList);
-		System.out.println(hashSet.size() + "----" + hashSet);
-		
-	}
+		System.out.println(str);
+*/	}
 }

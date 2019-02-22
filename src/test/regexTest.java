@@ -41,7 +41,7 @@ public class regexTest {
         String cy = "1";
         String cyc = "1.1";
 		System.out.println(isNumericzidai(Double.toString(taa)));
-		System.out.println(isNumericzidai(ta));
+		System.out.println(isNumericzidai(ta) + ta);
 		System.out.println(isNumericzidai(b));
 		System.out.println(isNumericzidai(c));
 		System.out.println(isNumericzidai(ct));
@@ -60,7 +60,7 @@ public class regexTest {
 	
 	public static boolean isNumericzidai(String str) {
 		// 该正则表达式可以匹配所有的数字 包括负数
-		Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
+		Pattern pattern = Pattern.compile("-?[0-9]+(\\.[0-9]+)?");
 		String bigStr;
 		try {
 			bigStr = new BigDecimal(str).toString();

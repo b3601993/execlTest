@@ -18,7 +18,6 @@ public class NoRenameStr {
 		String str3 = "pwwkew";
 		
 		done(str1);
-		
 	}
 
 	private static void done(String str1) {

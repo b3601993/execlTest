@@ -124,7 +124,7 @@ public class QuanxianExecl {
 		}
 		
 		//获取指定区间内付费用户数
-		QuanxianCommon.setDatabase(database);
+//		QuanxianCommon.setDatabase(database);
 		Map<Date, Map<String, Set<Long>>> payUserAccountIds = getPayUserAccountIds(startDate, endDate, "103");
 		
 		String fileName = "新增登录用户数";
@@ -222,7 +222,7 @@ public class QuanxianExecl {
 		}
 		
 		//获取指定区间内付费用户数
-		QuanxianCommon.setDatabase(database);
+//		QuanxianCommon.setDatabase(database);
 		Map<Date, Map<String, Set<Long>>> payUserAccountIds = getPayUserAccountIds(startDate, endDate, "103");
 		
 		String fileName = "二次登录用户数";
@@ -483,7 +483,7 @@ public class QuanxianExecl {
 
 
 	public static Map<String, Set<Long>> getPayUserAccountIds() {
-		QuanxianCommon.setDatabase(database);
+//		QuanxianCommon.setDatabase(database);
 		Map<String, Set<Long>> validMap = QuanxianCommon.getValidCurrentMonthPay(DateUtil.stringToDate("2018-05-01", "yyyy-MM-dd"), "901");
 		return validMap;
 	}

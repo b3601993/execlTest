@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,9 @@ import java.util.Set;
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
@@ -22,15 +26,62 @@ import utils.ggservice.common.DateUtil;
 
 public class QuanxianCommon {
 
-	public static MongoDatabase database = null;
+	public static MongoDatabase database = initDataBase();
 	
 	public static MongoDatabase getDatabase() {
 		return database;
 	}
 	
-	public static void setDatabase(MongoDatabase database) {
-		QuanxianCommon.database = database;
+	/**
+	 * 
+	 * @author yutao
+	 * @return 
+	 * @date 2018年12月10日下午1:57:54
+	 */
+	private static MongoDatabase initDataBase() {
+		//连接数据库 start
+		MongoCredential credential = MongoCredential.createCredential("api_r_acc", "ft_account", "api_r_acc@suntime.6806!".toCharArray());
+		ServerAddress serverAddress;
+		serverAddress = new ServerAddress("106.75.51.20", 35724);
+		List<ServerAddress> addrs = new ArrayList<ServerAddress>();
+		addrs.add(serverAddress);
+		List<MongoCredential> credentials = new ArrayList<MongoCredential>();
+		credentials.add(credential);
+		@SuppressWarnings("resource")
+		MongoClient mongoClient = new MongoClient(addrs, credentials);
+		System.out.println("Connect to database successfully");
+		//连接数据库 end
+		
+		database = mongoClient.getDatabase("ft_account");
+		return database;
 	}
+
+	/**
+	 * 获取所有的有过订单的用户
+	 * @param startDate
+	 * @param endDate
+	 * @author yutao
+	 * @return 
+	 * @date 2018年7月16日上午10:16:05
+	 */
+	public static Set<Long> getQuan(){
+		
+		MongoCollection<Document> thirdSpmsOrder = database.getCollection("tau_auth_order");
+		
+		Iterable<Integer> distinctIterable = thirdSpmsOrder.distinct("user_id", Integer.class);
+		
+		Set<Long> allAccountIdSet = new HashSet<>();
+		Iterator<Integer> iterator = distinctIterable.iterator();
+		while(iterator.hasNext()){
+			Integer o = iterator.next();
+			allAccountIdSet.add(Long.valueOf(o));
+		}
+		return allAccountIdSet;
+	}
+	
+	/*public static void setDatabase(MongoDatabase database) {
+		QuanxianCommon.database = database;
+	}*/
 
 
 	/**
@@ -109,7 +160,7 @@ public class QuanxianCommon {
 		Document group = new Document();
 		group.append("_id", "$goods_type_code");
 		group.append("accountId", new Document("$addToSet", "$user_id"));
-		MongoCollection<Document> orderBuy = database.getCollection("v_third_spms_order_buy_list");
+		MongoCollection<Document> orderBuy = database.getCollection("tau_auth_order");
 		
 		
 		List<Document> groupList = new ArrayList<>();
@@ -241,7 +292,7 @@ public class QuanxianCommon {
 		LinkedHashMap <String, String> map = new LinkedHashMap<String, String>();
 		map.put("G4_c01", "自选股");
 		map.put("G4_c02", "诊个股");
-		map.put("G4_c03", "诊行业");
+		map.put("G4_c03", "够牛会");//诊行业
 		map.put("G4_c04", "旺旺投研");
 		map.put("G4_c05", "好公司");
 		map.put("G4_c06", "寻宝");
@@ -250,6 +301,7 @@ public class QuanxianCommon {
 		map.put("G4_c09", "圈子");
 		map.put("G4_c10", "智能选股");
 		map.put("G4_c11", "主题热点");
+		map.put("G4_c12", "标签选股-工具");
 		map.put("G4_c13", "Go-Goal直播");
 		
 		map.put("newsList", "资讯");
@@ -266,10 +318,10 @@ public class QuanxianCommon {
 		map.put("G4_b08", "旺旺投研");
 		map.put("G4_b09", "数据中心");
 		map.put("G4_b10", "VIP服务");
-		map.put("G4_b10", "VIP服务");
 		map.put("G4_a01", "个股");
 		map.put("G4_a04", "委托");
 		map.put("G4_a05", "帮助");
+		map.put("G4_03", "机器人");
 		
 		return map;
 	}
