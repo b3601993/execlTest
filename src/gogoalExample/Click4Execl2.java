@@ -50,8 +50,8 @@ public class Click4Execl2 {
 			database = mongoClient.getDatabase("ft_account_behavior");
 			useropRecord = database.getCollection("cabs_userop_record");//埋点表
 			
-			Date startDate = DateUtil.stringToDate("2019-01-01", "yyyy-MM-dd");
-			Date endDate = DateUtil.stringToDate("2019-02-01", "yyyy-MM-dd");
+			Date startDate = DateUtil.stringToDate("2019-02-01", "yyyy-MM-dd");
+			Date endDate = DateUtil.stringToDate("2019-03-01", "yyyy-MM-dd");
 			
 			List<String> codeList = new ArrayList<>();
 			
